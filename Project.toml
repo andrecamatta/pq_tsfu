@@ -1,0 +1,16 @@
+name = "PQTSFu"
+uuid = "5e4a8c91-2d3b-46f7-a8e9-b1c5d4f2a983"
+authors = ["André Camatta <andrecamatta@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
