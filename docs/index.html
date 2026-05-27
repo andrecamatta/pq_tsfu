@@ -413,6 +413,15 @@ input[type="text"]:focus, input[type="number"]:focus {
   font-size: 12px;
   color: var(--slate);
 }
+.chart .note {
+  margin: 14px 8px 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ghost);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--charcoal);
+}
+.chart .note strong { color: var(--ink); font-weight: 500; }
 
 /* Footer */
 footer {
@@ -549,10 +558,12 @@ footer .bottom {
     <div class="chart">
       <div class="head"><h3>TSFu — AVL(t₀, t)</h3><span class="meta">trajetória de caixa sob estresse</span></div>
       <div id="chartTSFu"></div>
+      <p class="note">Cada ponto é o caixa projetado em t sob runoff stressado das fontes de captação e amortizações dos ativos. Valores positivos indicam folga de liquidez; valores negativos sinalizam breach (banco insolvente naquele período sem buffer adicional). O <strong>vale (binding date)</strong> marca o horizonte mais demandante, em que o buffer de liquidez precisa ter sido pré-construído com tamanho suficiente para zerar o gap.</p>
     </div>
     <div class="chart">
       <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">cumulado forward decrescente em maturidade</span></div>
       <div id="chartTSFCFu"></div>
+      <p class="note">Soma cumulativa dos AVL não-negativos do horizonte Tᵢ até T_b. Representa o <strong>teto agregado</strong> de comprometimento em investimentos ilíquidos a partir de cada vencimento Tᵢ. A curva é monotonicamente não-crescente: máxima em T₀ e decrescente conforme o funding é consumido por runoff. O valor terminal coincide com max(0, AVL em T_b).</p>
     </div>
   </div>
 
