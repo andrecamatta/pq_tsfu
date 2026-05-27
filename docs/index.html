@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;450;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '\\\\(', right: '\\\\)', display: false}]});"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <style>
 :root {
@@ -208,6 +211,53 @@ body {
   border-radius: 40px;
   padding: 28px 32px;
   border: 1px solid var(--ghost);
+}
+
+/* Formula card */
+.formulas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+@media (max-width: 720px) {
+  .formulas { grid-template-columns: 1fr; }
+}
+.formula-block {
+  background: var(--white);
+  border: 1px solid var(--ghost);
+  border-radius: 20px;
+  padding: 14px 18px;
+}
+.formula-block .label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.44px;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.formula-block .label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal-light);
+}
+.formula-block .math {
+  font-size: 15px;
+  color: var(--ink);
+  text-align: center;
+  margin: 4px 0;
+}
+.formula-block .desc {
+  font-size: 12px;
+  color: var(--charcoal);
+  line-height: 1.45;
+  margin-top: 8px;
 }
 
 /* Buttons */
@@ -517,6 +567,44 @@ footer .bottom {
         <p class="sub">Cada fonte tem montante inicial L levantado em T₀, prazo típico τ entre rolagens e taxa de falha na rolagem x (fração do saldo que não consegue ser refinanciada a cada rolagem sob estresse).</p>
         <div class="rows" id="sourcesList"></div>
         <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="eyebrow">Definições</span>
+    <h2>Fórmulas do modelo</h2>
+    <p class="sub">As equações por trás de cada gráfico, conforme §7.6 de Castagna e Fede.</p>
+    <div class="formulas">
+      <div class="formula-block">
+        <p class="label">Funding gap (n-ésima rolagem)</p>
+        <div class="math">$$\text{FG}_m(n) = x_m \cdot L_m \cdot (1 - x_m)^{n-1}$$</div>
+        <p class="desc">Quanto da fonte m falha em rolar na n-ésima rolagem. Os termos posteriores caem geometricamente, refletindo o saldo já consumido por rolagens anteriores.</p>
+      </div>
+      <div class="formula-block">
+        <p class="label">Número de rolagens</p>
+        <div class="math">$$N_m = \lceil T_b / \tau_m \rceil - 1$$</div>
+        <p class="desc">Quantas datas de rolagem cabem no horizonte para a fonte m. Cada rolagem ocorre em múltiplos de τ_m, contabilizada se for estritamente menor que T_b.</p>
+      </div>
+      <div class="formula-block">
+        <p class="label">AVL (alocação ilíquida)</p>
+        <div class="math">$$\text{AVL}(T_0, T_n) = (1 - \beta) \cdot \text{FG}_m(n)$$</div>
+        <p class="desc">Parcela do gap alocada a um ativo ilíquido vencendo em T_n. É a contribuição que aparece na TSFu por maturidade. A fração β do gap fica em ativos líquidos.</p>
+      </div>
+      <div class="formula-block">
+        <p class="label">Saldo terminal (T_b)</p>
+        <div class="math">$$\text{AVL}^{\text{terminal}} = L_m \cdot (1 - x_m)^{N_m}$$</div>
+        <p class="desc">Saldo da fonte m que sobrevive a todas as rolagens. Alocado integralmente a investimento ilíquido de longo prazo no terminal T_b.</p>
+      </div>
+      <div class="formula-block">
+        <p class="label">TSFu (agregada por maturidade)</p>
+        <div class="math">$$\text{TSFu}(T) = \sum_{m=1}^{M} \text{AVL}_m(T_0, T)$$</div>
+        <p class="desc">Soma das contribuições de todas as M fontes em cada maturidade T. É o que cada barra empilhada mostra no primeiro gráfico.</p>
+      </div>
+      <div class="formula-block">
+        <p class="label">TSFCFu (cumulado forward)</p>
+        <div class="math">$$\text{TSFCFu}(T_i) = \sum_{j=i}^{T_b} \text{TSFu}(j)$$</div>
+        <p class="desc">Soma-sufixo da TSFu: orçamento agregado disponível para comprometimento em qualquer ativo ilíquido com vencimento ≥ T_i.</p>
       </div>
     </div>
   </div>
