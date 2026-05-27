@@ -4,188 +4,580 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TSFu e TSFCFu — calculadora interativa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@400;450;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <style>
 :root {
-  --orange: #FF6719;
-  --navy: #0a0e27;
-  --bg: #ffffff;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --neg: #c0392b;
+  --canvas: #F3F0EE;
+  --lifted: #FCFBFA;
+  --white: #FFFFFF;
+  --ink: #141413;
+  --charcoal: #262627;
+  --slate: #696969;
+  --granite: #555555;
+  --taupe: #D1CDC7;
+  --signal: #CF4500;
+  --signal-light: #F37338;
+  --link: #3860BE;
+  --ghost: #E8E2DA;
+  --shadow-1: rgba(0, 0, 0, 0.04) 0px 4px 24px 0px;
+  --shadow-2: rgba(0, 0, 0, 0.08) 0px 24px 48px 0px;
 }
 * { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
-  margin: 0;
-  background: #f8fafc;
-  color: #1f2937;
-  line-height: 1.5;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Sofia Sans", "MarkForMC", Arial, sans-serif;
+  font-weight: 450;
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-header {
-  background: var(--navy);
-  color: white;
-  padding: 24px 32px;
-  border-bottom: 4px solid var(--orange);
-}
-header h1 { margin: 0 0 6px 0; font-size: 22px; }
-header p { margin: 0; color: #cbd5e1; font-size: 14px; }
-header a { color: var(--orange); text-decoration: none; }
-.wrap {
-  display: grid;
-  grid-template-columns: 380px 1fr;
+
+/* Floating nav pill */
+.nav {
+  position: sticky;
+  top: 24px;
+  z-index: 50;
+  margin: 24px auto 0;
+  max-width: 1200px;
+  background: var(--white);
+  border-radius: 999px;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-1);
   gap: 24px;
-  padding: 24px 32px;
-  max-width: 1400px;
+}
+.nav .brand {
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.32px;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav .brand .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal-light);
+  margin-right: 10px;
+  vertical-align: middle;
+}
+.nav .links {
+  display: flex;
+  gap: 40px;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.45px;
+}
+.nav .links a {
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav .links a:hover { color: var(--signal); }
+@media (max-width: 880px) {
+  .nav { padding: 14px 22px; gap: 12px; }
+  .nav .links { display: none; }
+}
+
+/* Hero */
+.hero {
+  max-width: 1200px;
+  margin: 64px auto 0;
+  padding: 0 48px;
+}
+.eyebrow {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.56px;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal-light);
+}
+.hero h1 {
+  font-size: 56px;
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -1.12px;
+  margin: 0 0 20px 0;
+  color: var(--ink);
+  max-width: 800px;
+}
+.hero p {
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--charcoal);
+  max-width: 700px;
+  margin: 0;
+}
+.hero p a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 720px) {
+  .hero { margin-top: 48px; padding: 0 24px; }
+  .hero h1 { font-size: 38px; letter-spacing: -0.76px; }
+  .hero p { font-size: 16px; }
+}
+
+/* Main grid */
+.layout {
+  max-width: 1200px;
+  margin: 48px auto 96px;
+  padding: 0 48px;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 32px;
+}
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; padding: 0 24px; gap: 24px; }
+}
+
+/* Cards */
+.card {
+  background: var(--lifted);
+  border-radius: 40px;
+  padding: 32px;
+}
+.card + .card { margin-top: 24px; }
+.card h2 {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+  margin: 0 0 4px 0;
+  color: var(--ink);
+}
+.card .sub {
+  font-size: 13px;
+  color: var(--slate);
+  margin: 0 0 22px 0;
+}
+
+/* Help / how to use card */
+.howto {
+  background: var(--white);
+  border-radius: 40px;
+  padding: 28px 32px;
+  border: 1px solid var(--ghost);
+}
+.howto ol {
+  margin: 12px 0 0 0;
+  padding-left: 22px;
+  font-size: 14px;
+  color: var(--charcoal);
+}
+.howto li { margin-bottom: 6px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--canvas);
+  font: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: -0.28px;
+  padding: 8px 22px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 80ms ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn.secondary {
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 450;
+}
+.btn.tiny {
+  padding: 4px 14px;
+  font-size: 12px;
+  border-radius: 999px;
+}
+.btn.icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1;
+}
+.btn.icon:hover { background: var(--ink); color: var(--canvas); }
+
+/* Preset chip group */
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* Input fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.field label {
+  font-size: 12px;
+  color: var(--slate);
+  font-weight: 700;
+  letter-spacing: 0.48px;
+  text-transform: uppercase;
+}
+input[type="text"], input[type="number"] {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 450;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--taupe);
+  border-radius: 999px;
+  padding: 9px 16px;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(20, 20, 19, 0.06);
+}
+
+/* Tables (assets/sources) */
+table.list {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 13px;
+}
+table.list th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--slate);
+  text-align: left;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--taupe);
+}
+table.list td {
+  padding: 4px 4px;
+  background: transparent;
+}
+table.list td input {
+  border-radius: 12px;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+table.list td.name input { min-width: 110px; }
+table.list td.short input { max-width: 90px; }
+.add-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* KPI strip */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi {
+  background: var(--lifted);
+  border-radius: 24px;
+  padding: 18px 22px;
+  position: relative;
+}
+.kpi .lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.44px;
+  text-transform: uppercase;
+  color: var(--slate);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.kpi .lbl::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal-light);
+}
+.kpi .val {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.44px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.kpi.neg .val { color: var(--signal); }
+@media (max-width: 980px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+}
+
+/* Chart cards */
+.charts { display: flex; flex-direction: column; gap: 20px; }
+.chart {
+  background: var(--white);
+  border-radius: 40px;
+  padding: 28px 24px 16px;
+  box-shadow: var(--shadow-2);
+}
+.chart .head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 8px 12px;
+}
+.chart .head h3 {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.44px;
+  margin: 0;
+  color: var(--ink);
+}
+.chart .head .meta {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+/* Footer */
+footer {
+  background: var(--ink);
+  color: var(--white);
+  padding: 80px 48px 64px;
+}
+footer .inner {
+  max-width: 1200px;
   margin: 0 auto;
 }
-.panel {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 18px;
+footer h2 {
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.72px;
+  line-height: 1.1;
+  margin: 0 0 48px 0;
+  max-width: 720px;
 }
-.panel h2 {
-  font-size: 14px;
-  margin: 0 0 12px 0;
-  color: var(--muted);
+footer .grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+footer h4 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.48px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 14px 0;
 }
-.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
-.field label { font-size: 12px; color: var(--muted); font-weight: 600; }
-.field input[type=number] {
-  font: inherit; font-variant-numeric: tabular-nums;
-  border: 1px solid var(--line); border-radius: 4px;
-  padding: 6px 8px; width: 100%;
+footer ul { list-style: none; margin: 0; padding: 0; }
+footer li { margin-bottom: 10px; font-size: 14px; font-weight: 450; }
+footer a { color: var(--white); text-decoration: none; }
+footer a:hover { color: var(--signal-light); }
+footer .external::after { content: " ↗"; opacity: 0.6; }
+footer .bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  flex-wrap: wrap;
+  gap: 16px;
 }
-.row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-.row input[type=text] { flex: 1; }
-.row input[type=number] { width: 80px; }
-.btn {
-  border: 0; background: var(--orange); color: white;
-  padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-weight: 600;
-}
-.btn.ghost { background: transparent; color: var(--orange); border: 1px solid var(--orange); }
-.btn.small { padding: 4px 8px; font-size: 12px; }
-.btn.danger { background: #ef4444; }
-table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.list th { background: #f9fafb; padding: 6px 8px; text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
-table.list td { padding: 4px 8px; border-bottom: 1px solid var(--line); }
-table.list td input { font: inherit; border: 1px solid var(--line); border-radius: 3px; padding: 2px 5px; width: 100%; font-variant-numeric: tabular-nums; }
-table.list td.name input { min-width: 100px; }
-.presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.presets .btn { font-size: 12px; padding: 6px 12px; }
-.kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.kpi .card { background: #f9fafb; padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--orange); }
-.kpi .card .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-.kpi .card .val { font-size: 18px; font-weight: 600; color: var(--navy); font-variant-numeric: tabular-nums; }
-.kpi .card.neg .val { color: var(--neg); }
-.charts { display: flex; flex-direction: column; gap: 16px; }
-.chart { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
-.help {
-  background: #fff8f0; border-left: 3px solid var(--orange);
-  padding: 12px 16px; border-radius: 6px; margin-bottom: 16px;
-  font-size: 13px; color: #5b3a1e;
-}
-.help h3 { margin: 0 0 6px 0; font-size: 13px; color: #92400e; }
-.help ol { margin: 4px 0 0 0; padding-left: 18px; }
-.help li { margin-bottom: 3px; }
-@media (max-width: 960px) {
-  .wrap { grid-template-columns: 1fr; }
+@media (max-width: 720px) {
+  footer { padding: 56px 24px 40px; }
+  footer h2 { font-size: 28px; letter-spacing: -0.56px; }
+  footer .grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>TSFu e TSFCFu — calculadora interativa</h1>
-  <p>Companion app do artigo <a href="https://pilulasdequant.com.br">Pílulas de Quant</a> sobre Term Structure of Available Funding (TSFu) e Forward Cumulated Funding (TSFCFu). Código: <a href="https://github.com/andrecamatta/pq_tsfu">github.com/andrecamatta/pq_tsfu</a></p>
-</header>
+<nav class="nav">
+  <a class="brand" href="https://pilulasdequant.com.br"><span class="dot"></span>Pílulas de Quant</a>
+  <div class="links">
+    <a href="#calculadora">Calculadora</a>
+    <a href="https://github.com/andrecamatta/pq_tsfu">Código</a>
+    <a href="https://pilulasdequant.com.br">Artigos</a>
+  </div>
+</nav>
 
-<div class="wrap">
+<section class="hero">
+  <span class="eyebrow">Calculadora interativa</span>
+  <h1>TSFu e TSFCFu — visualize liquidez sob estresse e cumulado forward</h1>
+  <p>Companion app do artigo sobre Term Structure of Available Funding e Forward Cumulated Funding. Edite os parâmetros do banco e veja as curvas atualizarem em tempo real. Código completo no repositório <a href="https://github.com/andrecamatta/pq_tsfu">pq_tsfu</a>.</p>
+</section>
 
-<div>
-  <div class="panel">
-    <h2>Como usar</h2>
-    <div class="help">
+<main class="layout" id="calculadora">
+
+  <aside>
+    <div class="howto">
+      <span class="eyebrow">Como usar</span>
       <ol>
         <li>Escolha um preset abaixo ou edite os parâmetros do banco.</li>
         <li>Adicione ou remova ativos e fontes de captação nas tabelas.</li>
-        <li>Os gráficos atualizam em tempo real conforme os campos mudam.</li>
+        <li>Os gráficos atualizam conforme os campos mudam.</li>
         <li>TSFu = trajetória de AVL sob estresse. TSFCFu = cumulado forward decrescente.</li>
       </ol>
     </div>
 
-    <div class="presets">
-      <button class="btn ghost" id="presetBalanced">Banco balanceado</button>
-      <button class="btn ghost" id="presetCanonical">Banco canônico (breach)</button>
-      <button class="btn ghost" id="presetBrazilian">Banco S1 BR</button>
+    <div class="card">
+      <span class="eyebrow">Presets</span>
+      <h2>Bancos pré-configurados</h2>
+      <p class="sub">Carregue um cenário base e ajuste à vontade.</p>
+      <div class="presets">
+        <button class="btn" id="presetBalanced">Balanceado</button>
+        <button class="btn secondary" id="presetCanonical">Canônico (breach)</button>
+        <button class="btn secondary" id="presetBrazilian">S1 Brasil</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="eyebrow">Parâmetros</span>
+      <h2>Configuração do banco</h2>
+      <p class="sub">Caixa inicial, horizonte e taxa risk-free.</p>
+      <div class="field">
+        <label>Caixa inicial</label>
+        <input type="number" id="cashInitial" step="10">
+      </div>
+      <div class="field">
+        <label>Horizonte (períodos)</label>
+        <input type="number" id="horizon" min="3" max="20" step="1">
+      </div>
+      <div class="field">
+        <label>Taxa risk-free (decimal)</label>
+        <input type="number" id="riskFree" step="0.005">
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="eyebrow">Ativos</span>
+      <h2>Carteira de ativos</h2>
+      <p class="sub">Investimentos ilíquidos com prazo definido.</p>
+      <table class="list" id="assetsTable">
+        <thead>
+          <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="add-row"><button class="btn secondary tiny" id="addAsset">+ adicionar ativo</button></div>
+    </div>
+
+    <div class="card">
+      <span class="eyebrow">Captação</span>
+      <h2>Fontes de funding</h2>
+      <p class="sub">Liabilities com cupom e runoff stressado.</p>
+      <table class="list" id="sourcesTable">
+        <thead>
+          <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th>Runoff</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
+    </div>
+  </aside>
+
+  <section>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
+      <div class="kpi"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
+      <div class="kpi"><div class="lbl">TSFCFu (T₀)</div><div class="val" id="kpiCfMax">—</div></div>
+      <div class="kpi"><div class="lbl">TSFCFu (Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
+    </div>
+
+    <div class="charts">
+      <div class="chart">
+        <div class="head"><h3>TSFu — AVL(t₀, t)</h3><span class="meta">trajetória de caixa sob estresse</span></div>
+        <div id="chartTSFu"></div>
+      </div>
+      <div class="chart">
+        <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">monotonicamente decrescente em maturidade</span></div>
+        <div id="chartTSFCFu"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <h2>Material de apoio em código aberto, pronto para tesoureiros, analistas e pesquisadores.</h2>
+    <div class="grid">
+      <div>
+        <h4>Recursos</h4>
+        <ul>
+          <li><a href="https://github.com/andrecamatta/pq_tsfu" class="external">Repositório pq_tsfu</a></li>
+          <li><a href="https://github.com/andrecamatta/pq_tsfu/tree/main/examples" class="external">Exemplos em Julia</a></li>
+          <li><a href="https://github.com/andrecamatta/pq_tsfu/blob/main/README.md" class="external">README</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Pílulas de Quant</h4>
+        <ul>
+          <li><a href="https://pilulasdequant.com.br" class="external">Substack</a></li>
+          <li><a href="https://pilulasdequant.com.br/p/estruturas-a-termo-de-liquidez-do" class="external">Estruturas a termo de liquidez</a></li>
+          <li><a href="https://pilulasdequant.com.br/p/o-custo-do-buffer-de-liquidez-sob" class="external">Custo do buffer de liquidez</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Referência</h4>
+        <ul>
+          <li>Castagna, A.; Fede, F.</li>
+          <li>Measuring and Managing Liquidity Risk</li>
+          <li>Wiley Finance, 2013</li>
+        </ul>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 André Camatta. MIT License.</span>
+      <span>Calculadora pedagógica. Não substitui sistemas de produção.</span>
     </div>
   </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>Parâmetros gerais</h2>
-    <div class="field">
-      <label>Caixa inicial</label>
-      <input type="number" id="cashInitial" step="10">
-    </div>
-    <div class="field">
-      <label>Horizonte (períodos)</label>
-      <input type="number" id="horizon" min="3" max="20" step="1">
-    </div>
-    <div class="field">
-      <label>Taxa risk-free (decimal)</label>
-      <input type="number" id="riskFree" step="0.005">
-    </div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>Ativos</h2>
-    <table class="list" id="assetsTable">
-      <thead>
-        <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="btn small ghost" id="addAsset" style="margin-top:8px">+ adicionar ativo</button>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>Fontes de captação</h2>
-    <table class="list" id="sourcesTable">
-      <thead>
-        <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th>Runoff</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="btn small ghost" id="addSource" style="margin-top:8px">+ adicionar fonte</button>
-  </div>
-</div>
-
-<div>
-  <div class="kpi" id="kpis">
-    <div class="card"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
-    <div class="card"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
-    <div class="card"><div class="lbl">TSFCFu(T₀)</div><div class="val" id="kpiCfMax">—</div></div>
-    <div class="card"><div class="lbl">TSFCFu(Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
-  </div>
-
-  <div class="charts">
-    <div class="chart" id="chartTSFu"></div>
-    <div class="chart" id="chartTSFCFu"></div>
-  </div>
-</div>
-
-</div>
+</footer>
 
 <script>
 const PRESETS = {
   balanced: {
-    name: "Banco balanceado",
-    cashInitial: 600,
-    horizon: 6,
-    riskFree: 0.03,
+    cashInitial: 600, horizon: 6, riskFree: 0.03,
     assets: [
       { name: "Crédito 4y", notional: 200, maturity: 4, coupon: 0.06 },
       { name: "Crédito 6y", notional: 100, maturity: 6, coupon: 0.07 },
@@ -198,10 +590,7 @@ const PRESETS = {
     ],
   },
   canonical: {
-    name: "Banco canônico (breach)",
-    cashInitial: 50,
-    horizon: 6,
-    riskFree: 0.03,
+    cashInitial: 50, horizon: 6, riskFree: 0.03,
     assets: [
       { name: "Empréstimo 5y", notional: 500, maturity: 5, coupon: 0.05 },
       { name: "Empréstimo 3y", notional: 300, maturity: 3, coupon: 0.04 },
@@ -214,10 +603,7 @@ const PRESETS = {
     ],
   },
   brazilian: {
-    name: "Banco S1 BR",
-    cashInitial: 80,
-    horizon: 6,
-    riskFree: 0.115,
+    cashInitial: 80, horizon: 6, riskFree: 0.115,
     assets: [
       { name: "Crédito imobiliário 5y", notional: 600, maturity: 5, coupon: 0.13 },
       { name: "Crédito empresarial 3y", notional: 400, maturity: 3, coupon: 0.14 },
@@ -295,30 +681,43 @@ function render() {
   const tsfcfu = computeTSFCFu();
   const xs = Array.from({ length: tsfu.length }, (_, i) => i);
 
+  const fontFamily = '"Sofia Sans", "MarkForMC", Arial, sans-serif';
   const layoutBase = {
-    margin: { l: 60, r: 20, t: 30, b: 40 },
-    font: { family: "system-ui, sans-serif", size: 12 },
-    paper_bgcolor: "white",
-    plot_bgcolor: "#fafafa",
-    xaxis: { title: "T (período)", gridcolor: "#e5e7eb" },
-    yaxis: { gridcolor: "#e5e7eb", zerolinecolor: "#9ca3af" },
+    margin: { l: 56, r: 16, t: 12, b: 44 },
+    font: { family: fontFamily, size: 13, color: "#141413" },
+    paper_bgcolor: "#FFFFFF",
+    plot_bgcolor: "#FCFBFA",
+    xaxis: {
+      title: { text: "T (período)", font: { size: 12, color: "#696969" } },
+      gridcolor: "#EFE9E2",
+      zerolinecolor: "#D1CDC7",
+      tickfont: { color: "#555555" },
+    },
+    yaxis: {
+      gridcolor: "#EFE9E2",
+      zerolinecolor: "#9A3A0A",
+      tickfont: { color: "#555555" },
+      tickformat: ",.0f",
+    },
     showlegend: false,
     height: 320,
   };
 
   Plotly.react("chartTSFu", [
     { x: xs, y: tsfu, type: "scatter", mode: "lines+markers",
-      line: { color: "#FF6719", width: 2.5 }, marker: { size: 8 },
-      fill: "tozeroy", fillcolor: "rgba(255,103,25,0.08)",
+      line: { color: "#141413", width: 2.5, shape: "spline", smoothing: 0.4 },
+      marker: { size: 8, color: "#141413" },
+      fill: "tozeroy", fillcolor: "rgba(207,69,0,0.10)",
       hovertemplate: "t=%{x}<br>AVL=%{y:,.2f}<extra></extra>" }
-  ], { ...layoutBase, title: { text: "TSFu — AVL(t₀, t)", font: { size: 14 } } }, { displayModeBar: false });
+  ], layoutBase, { displayModeBar: false, responsive: true });
 
   Plotly.react("chartTSFCFu", [
     { x: xs, y: tsfcfu, type: "scatter", mode: "lines+markers",
-      line: { color: "#0a0e27", width: 2.5 }, marker: { size: 8 },
-      fill: "tozeroy", fillcolor: "rgba(10,14,39,0.08)",
+      line: { color: "#9A3A0A", width: 2.5, shape: "spline", smoothing: 0.4 },
+      marker: { size: 8, color: "#9A3A0A" },
+      fill: "tozeroy", fillcolor: "rgba(243,115,56,0.10)",
       hovertemplate: "T_i=%{x}<br>TSFCFu=%{y:,.2f}<extra></extra>" }
-  ], { ...layoutBase, title: { text: "TSFCFu — cumulado forward", font: { size: 14 } } }, { displayModeBar: false });
+  ], layoutBase, { displayModeBar: false, responsive: true });
 
   const minAvl = Math.min(...tsfu);
   const bindIdx = tsfu.indexOf(minAvl);
@@ -342,10 +741,10 @@ function renderAssetsTable() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${a.name}"></td>
-      <td><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></td>
-      <td><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></td>
-      <td><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></td>
-      <td><button class="btn small danger" data-rm="${idx}">×</button></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></td>
+      <td><button class="btn icon" data-rm="${idx}" title="remover">×</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -358,13 +757,24 @@ function renderSourcesTable() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${s.name}"></td>
-      <td><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></td>
-      <td><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></td>
-      <td><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></td>
-      <td><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></td>
-      <td><button class="btn small danger" data-rm="${idx}">×</button></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></td>
+      <td class="short"><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></td>
+      <td><button class="btn icon" data-rm="${idx}" title="remover">×</button></td>
     `;
     tbody.appendChild(tr);
+  });
+}
+
+function setActivePreset(name) {
+  const btns = {
+    balanced: document.getElementById("presetBalanced"),
+    canonical: document.getElementById("presetCanonical"),
+    brazilian: document.getElementById("presetBrazilian"),
+  };
+  Object.entries(btns).forEach(([k, b]) => {
+    b.classList.toggle("secondary", k !== name);
   });
 }
 
@@ -378,6 +788,7 @@ function rebuild() {
 function loadPreset(name) {
   state = JSON.parse(JSON.stringify(PRESETS[name]));
   rebuild();
+  setActivePreset(name);
 }
 
 document.getElementById("presetBalanced").addEventListener("click", () => loadPreset("balanced"));
@@ -402,8 +813,9 @@ function attachListEvents(tableId, listKey, tableRenderer) {
     render();
   });
   tbody.addEventListener("click", e => {
-    if (e.target.dataset.rm !== undefined) {
-      const i = +e.target.dataset.rm;
+    const rm = e.target.closest("[data-rm]");
+    if (rm) {
+      const i = +rm.dataset.rm;
       state[listKey].splice(i, 1);
       tableRenderer();
       render();
@@ -427,6 +839,7 @@ document.getElementById("addSource").addEventListener("click", () => {
 });
 
 rebuild();
+setActivePreset("balanced");
 </script>
 
 </body>
