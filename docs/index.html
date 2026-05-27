@@ -272,34 +272,40 @@ input[type="text"]:focus, input[type="number"]:focus {
   box-shadow: 0 0 0 3px rgba(20, 20, 19, 0.06);
 }
 
-/* Tables (assets/sources) */
-table.list {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 6px;
-  font-size: 13px;
+/* Rows (assets/sources) */
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.row-item {
+  background: var(--white);
+  border: 1px solid var(--ghost);
+  border-radius: 20px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-table.list th {
-  font-size: 11px;
+.row-head { display: flex; gap: 8px; align-items: center; }
+.row-head input { flex: 1; }
+.row-grid {
+  display: grid;
+  gap: 8px;
+}
+.row-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.row-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.row-grid .cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.row-grid .cell label {
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: var(--slate);
-  text-align: left;
-  padding: 0 8px 8px;
-  border-bottom: 1px solid var(--taupe);
 }
-table.list td {
-  padding: 4px 4px;
-  background: transparent;
-}
-table.list td input {
+.row-grid input {
   border-radius: 12px;
-  padding: 7px 12px;
+  padding: 6px 10px;
   font-size: 13px;
+  width: 100%;
+  min-width: 0;
 }
-table.list td.name input { min-width: 110px; }
-table.list td.short input { max-width: 90px; }
 .add-row {
   margin-top: 14px;
   display: flex;
@@ -493,12 +499,7 @@ footer .bottom {
       <span class="eyebrow">Ativos</span>
       <h2>Carteira de ativos</h2>
       <p class="sub">Investimentos ilíquidos com prazo definido.</p>
-      <table class="list" id="assetsTable">
-        <thead>
-          <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th></th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="rows" id="assetsList"></div>
       <div class="add-row"><button class="btn secondary tiny" id="addAsset">+ adicionar ativo</button></div>
     </div>
 
@@ -506,12 +507,7 @@ footer .bottom {
       <span class="eyebrow">Captação</span>
       <h2>Fontes de funding</h2>
       <p class="sub">Liabilities com cupom e runoff stressado.</p>
-      <table class="list" id="sourcesTable">
-        <thead>
-          <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th>Runoff</th><th></th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="rows" id="sourcesList"></div>
       <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
     </div>
   </aside>
@@ -735,35 +731,45 @@ function bindGeneralFields() {
 }
 
 function renderAssetsTable() {
-  const tbody = document.querySelector("#assetsTable tbody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("assetsList");
+  list.innerHTML = "";
   state.assets.forEach((a, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${a.name}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></td>
-      <td><button class="btn icon" data-rm="${idx}" title="remover">×</button></td>
+    const item = document.createElement("div");
+    item.className = "row-item";
+    item.innerHTML = `
+      <div class="row-head">
+        <input type="text" data-i="${idx}" data-k="name" value="${a.name}" placeholder="Nome do ativo">
+        <button class="btn icon" data-rm="${idx}" title="remover">×</button>
+      </div>
+      <div class="row-grid cols-3">
+        <div class="cell"><label>Notional</label><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></div>
+        <div class="cell"><label>Maturidade</label><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></div>
+        <div class="cell"><label>Cupom</label><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></div>
+      </div>
     `;
-    tbody.appendChild(tr);
+    list.appendChild(item);
   });
 }
 
 function renderSourcesTable() {
-  const tbody = document.querySelector("#sourcesTable tbody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("sourcesList");
+  list.innerHTML = "";
   state.sources.forEach((s, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${s.name}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></td>
-      <td class="short"><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></td>
-      <td><button class="btn icon" data-rm="${idx}" title="remover">×</button></td>
+    const item = document.createElement("div");
+    item.className = "row-item";
+    item.innerHTML = `
+      <div class="row-head">
+        <input type="text" data-i="${idx}" data-k="name" value="${s.name}" placeholder="Nome da fonte">
+        <button class="btn icon" data-rm="${idx}" title="remover">×</button>
+      </div>
+      <div class="row-grid cols-4">
+        <div class="cell"><label>Notional</label><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></div>
+        <div class="cell"><label>Maturidade</label><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></div>
+        <div class="cell"><label>Cupom</label><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></div>
+        <div class="cell"><label>Runoff</label><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></div>
+      </div>
     `;
-    tbody.appendChild(tr);
+    list.appendChild(item);
   });
 }
 
@@ -802,9 +808,9 @@ document.getElementById("horizon").addEventListener("input", e => {
 });
 document.getElementById("riskFree").addEventListener("input", e => { state.riskFree = +e.target.value; render(); });
 
-function attachListEvents(tableId, listKey, tableRenderer) {
-  const tbody = document.querySelector(`#${tableId} tbody`);
-  tbody.addEventListener("input", e => {
+function attachListEvents(containerId, listKey, tableRenderer) {
+  const root = document.getElementById(containerId);
+  root.addEventListener("input", e => {
     const i = +e.target.dataset.i;
     const k = e.target.dataset.k;
     if (!isFinite(i) || !k) return;
@@ -812,7 +818,7 @@ function attachListEvents(tableId, listKey, tableRenderer) {
     else state[listKey][i][k] = +e.target.value;
     render();
   });
-  tbody.addEventListener("click", e => {
+  root.addEventListener("click", e => {
     const rm = e.target.closest("[data-rm]");
     if (rm) {
       const i = +rm.dataset.rm;
@@ -823,8 +829,8 @@ function attachListEvents(tableId, listKey, tableRenderer) {
   });
 }
 
-attachListEvents("assetsTable", "assets", renderAssetsTable);
-attachListEvents("sourcesTable", "sources", renderSourcesTable);
+attachListEvents("assetsList", "assets", renderAssetsTable);
+attachListEvents("sourcesList", "sources", renderSourcesTable);
 
 document.getElementById("addAsset").addEventListener("click", () => {
   state.assets.push({ name: "Novo ativo", notional: 100, maturity: Math.min(3, state.horizon), coupon: 0.05 });
