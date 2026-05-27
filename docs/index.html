@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSFu e TSFCFu — calculadora interativa</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+:root {
+  --orange: #FF6719;
+  --navy: #0a0e27;
+  --bg: #ffffff;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --neg: #c0392b;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  margin: 0;
+  background: #f8fafc;
+  color: #1f2937;
+  line-height: 1.5;
+}
+header {
+  background: var(--navy);
+  color: white;
+  padding: 24px 32px;
+  border-bottom: 4px solid var(--orange);
+}
+header h1 { margin: 0 0 6px 0; font-size: 22px; }
+header p { margin: 0; color: #cbd5e1; font-size: 14px; }
+header a { color: var(--orange); text-decoration: none; }
+.wrap {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+}
+.panel h2 {
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.field label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.field input[type=number] {
+  font: inherit; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line); border-radius: 4px;
+  padding: 6px 8px; width: 100%;
+}
+.row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.row input[type=text] { flex: 1; }
+.row input[type=number] { width: 80px; }
+.btn {
+  border: 0; background: var(--orange); color: white;
+  padding: 8px 14px; border-radius: 4px; cursor: pointer; font: inherit; font-weight: 600;
+}
+.btn.ghost { background: transparent; color: var(--orange); border: 1px solid var(--orange); }
+.btn.small { padding: 4px 8px; font-size: 12px; }
+.btn.danger { background: #ef4444; }
+table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.list th { background: #f9fafb; padding: 6px 8px; text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+table.list td { padding: 4px 8px; border-bottom: 1px solid var(--line); }
+table.list td input { font: inherit; border: 1px solid var(--line); border-radius: 3px; padding: 2px 5px; width: 100%; font-variant-numeric: tabular-nums; }
+table.list td.name input { min-width: 100px; }
+.presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.presets .btn { font-size: 12px; padding: 6px 12px; }
+.kpi { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.kpi .card { background: #f9fafb; padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--orange); }
+.kpi .card .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.kpi .card .val { font-size: 18px; font-weight: 600; color: var(--navy); font-variant-numeric: tabular-nums; }
+.kpi .card.neg .val { color: var(--neg); }
+.charts { display: flex; flex-direction: column; gap: 16px; }
+.chart { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.help {
+  background: #fff8f0; border-left: 3px solid var(--orange);
+  padding: 12px 16px; border-radius: 6px; margin-bottom: 16px;
+  font-size: 13px; color: #5b3a1e;
+}
+.help h3 { margin: 0 0 6px 0; font-size: 13px; color: #92400e; }
+.help ol { margin: 4px 0 0 0; padding-left: 18px; }
+.help li { margin-bottom: 3px; }
+@media (max-width: 960px) {
+  .wrap { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TSFu e TSFCFu — calculadora interativa</h1>
+  <p>Companion app do artigo <a href="https://pilulasdequant.com.br">Pílulas de Quant</a> sobre Term Structure of Available Funding (TSFu) e Forward Cumulated Funding (TSFCFu). Código: <a href="https://github.com/andrecamatta/pq_tsfu">github.com/andrecamatta/pq_tsfu</a></p>
+</header>
+
+<div class="wrap">
+
+<div>
+  <div class="panel">
+    <h2>Como usar</h2>
+    <div class="help">
+      <ol>
+        <li>Escolha um preset abaixo ou edite os parâmetros do banco.</li>
+        <li>Adicione ou remova ativos e fontes de captação nas tabelas.</li>
+        <li>Os gráficos atualizam em tempo real conforme os campos mudam.</li>
+        <li>TSFu = trajetória de AVL sob estresse. TSFCFu = cumulado forward decrescente.</li>
+      </ol>
+    </div>
+
+    <div class="presets">
+      <button class="btn ghost" id="presetBalanced">Banco balanceado</button>
+      <button class="btn ghost" id="presetCanonical">Banco canônico (breach)</button>
+      <button class="btn ghost" id="presetBrazilian">Banco S1 BR</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>Parâmetros gerais</h2>
+    <div class="field">
+      <label>Caixa inicial</label>
+      <input type="number" id="cashInitial" step="10">
+    </div>
+    <div class="field">
+      <label>Horizonte (períodos)</label>
+      <input type="number" id="horizon" min="3" max="20" step="1">
+    </div>
+    <div class="field">
+      <label>Taxa risk-free (decimal)</label>
+      <input type="number" id="riskFree" step="0.005">
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>Ativos</h2>
+    <table class="list" id="assetsTable">
+      <thead>
+        <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="btn small ghost" id="addAsset" style="margin-top:8px">+ adicionar ativo</button>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>Fontes de captação</h2>
+    <table class="list" id="sourcesTable">
+      <thead>
+        <tr><th>Nome</th><th>Notional</th><th>Maturidade</th><th>Cupom</th><th>Runoff</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="btn small ghost" id="addSource" style="margin-top:8px">+ adicionar fonte</button>
+  </div>
+</div>
+
+<div>
+  <div class="kpi" id="kpis">
+    <div class="card"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
+    <div class="card"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
+    <div class="card"><div class="lbl">TSFCFu(T₀)</div><div class="val" id="kpiCfMax">—</div></div>
+    <div class="card"><div class="lbl">TSFCFu(Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart" id="chartTSFu"></div>
+    <div class="chart" id="chartTSFCFu"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const PRESETS = {
+  balanced: {
+    name: "Banco balanceado",
+    cashInitial: 600,
+    horizon: 6,
+    riskFree: 0.03,
+    assets: [
+      { name: "Crédito 4y", notional: 200, maturity: 4, coupon: 0.06 },
+      { name: "Crédito 6y", notional: 100, maturity: 6, coupon: 0.07 },
+    ],
+    sources: [
+      { name: "Depósito varejo estável", notional: 250, maturity: 6, coupon: 0.02, runoff: 0.02 },
+      { name: "LF 2y", notional: 200, maturity: 2, coupon: 0.04, runoff: 0.05 },
+      { name: "LF 4y", notional: 150, maturity: 4, coupon: 0.045, runoff: 0.03 },
+      { name: "Capital próprio", notional: 100, maturity: 6, coupon: 0.0, runoff: 0.0 },
+    ],
+  },
+  canonical: {
+    name: "Banco canônico (breach)",
+    cashInitial: 50,
+    horizon: 6,
+    riskFree: 0.03,
+    assets: [
+      { name: "Empréstimo 5y", notional: 500, maturity: 5, coupon: 0.05 },
+      { name: "Empréstimo 3y", notional: 300, maturity: 3, coupon: 0.04 },
+    ],
+    sources: [
+      { name: "Depósito varejo", notional: 400, maturity: 1, coupon: 0.025, runoff: 0.05 },
+      { name: "CDB atacado 1y", notional: 200, maturity: 1, coupon: 0.035, runoff: 0.20 },
+      { name: "LF atacado 3y", notional: 150, maturity: 3, coupon: 0.045, runoff: 0.10 },
+      { name: "Capital próprio", notional: 100, maturity: 6, coupon: 0.0, runoff: 0.0 },
+    ],
+  },
+  brazilian: {
+    name: "Banco S1 BR",
+    cashInitial: 80,
+    horizon: 6,
+    riskFree: 0.115,
+    assets: [
+      { name: "Crédito imobiliário 5y", notional: 600, maturity: 5, coupon: 0.13 },
+      { name: "Crédito empresarial 3y", notional: 400, maturity: 3, coupon: 0.14 },
+    ],
+    sources: [
+      { name: "Depósito poupança", notional: 350, maturity: 1, coupon: 0.07, runoff: 0.05 },
+      { name: "CDB 1y FGC", notional: 250, maturity: 1, coupon: 0.115, runoff: 0.10 },
+      { name: "LF 2y", notional: 200, maturity: 2, coupon: 0.125, runoff: 0.15 },
+      { name: "LF 3y", notional: 150, maturity: 3, coupon: 0.130, runoff: 0.10 },
+      { name: "Capital próprio", notional: 130, maturity: 6, coupon: 0.0, runoff: 0.0 },
+    ],
+  },
+};
+
+let state = JSON.parse(JSON.stringify(PRESETS.balanced));
+
+function assetCashflowAt(asset, period) {
+  if (period > asset.maturity || period < 1) return 0;
+  const interest = asset.notional * asset.coupon;
+  if (period === asset.maturity) return interest + asset.notional;
+  return interest;
+}
+
+function fundingOutflowAt(source, period) {
+  if (period > source.maturity || period < 1) return 0;
+  if (period === source.maturity) {
+    let consumed = source.runoff * (source.maturity - 1);
+    consumed = Math.min(consumed, 1);
+    const residualPrincipal = source.notional * (1 - consumed);
+    const interest = source.notional * (1 - consumed) * source.coupon;
+    return residualPrincipal + interest;
+  }
+  let consumedBefore = source.runoff * (period - 1);
+  consumedBefore = Math.min(consumedBefore, 1);
+  const runoff = source.notional * source.runoff;
+  const interest = source.notional * (1 - consumedBefore) * source.coupon;
+  return runoff + interest;
+}
+
+function projectAVL(t) {
+  if (t < 0) return state.cashInitial;
+  let cash = state.cashInitial;
+  for (let k = 1; k <= t; k++) {
+    for (const a of state.assets) cash += assetCashflowAt(a, k);
+    for (const s of state.sources) cash -= fundingOutflowAt(s, k);
+  }
+  return cash;
+}
+
+function computeTSFu() {
+  const out = [];
+  for (let t = 0; t <= state.horizon; t++) out.push(projectAVL(t));
+  return out;
+}
+
+function computeTSFCFu() {
+  const tsfu = computeTSFu();
+  const H = state.horizon;
+  const out = new Array(H + 1).fill(0);
+  let s = 0;
+  for (let i = H; i >= 0; i--) {
+    s += Math.max(0, tsfu[i]);
+    out[i] = s;
+  }
+  return out;
+}
+
+function fmt(v) {
+  if (!isFinite(v)) return "—";
+  return v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function render() {
+  const tsfu = computeTSFu();
+  const tsfcfu = computeTSFCFu();
+  const xs = Array.from({ length: tsfu.length }, (_, i) => i);
+
+  const layoutBase = {
+    margin: { l: 60, r: 20, t: 30, b: 40 },
+    font: { family: "system-ui, sans-serif", size: 12 },
+    paper_bgcolor: "white",
+    plot_bgcolor: "#fafafa",
+    xaxis: { title: "T (período)", gridcolor: "#e5e7eb" },
+    yaxis: { gridcolor: "#e5e7eb", zerolinecolor: "#9ca3af" },
+    showlegend: false,
+    height: 320,
+  };
+
+  Plotly.react("chartTSFu", [
+    { x: xs, y: tsfu, type: "scatter", mode: "lines+markers",
+      line: { color: "#FF6719", width: 2.5 }, marker: { size: 8 },
+      fill: "tozeroy", fillcolor: "rgba(255,103,25,0.08)",
+      hovertemplate: "t=%{x}<br>AVL=%{y:,.2f}<extra></extra>" }
+  ], { ...layoutBase, title: { text: "TSFu — AVL(t₀, t)", font: { size: 14 } } }, { displayModeBar: false });
+
+  Plotly.react("chartTSFCFu", [
+    { x: xs, y: tsfcfu, type: "scatter", mode: "lines+markers",
+      line: { color: "#0a0e27", width: 2.5 }, marker: { size: 8 },
+      fill: "tozeroy", fillcolor: "rgba(10,14,39,0.08)",
+      hovertemplate: "T_i=%{x}<br>TSFCFu=%{y:,.2f}<extra></extra>" }
+  ], { ...layoutBase, title: { text: "TSFCFu — cumulado forward", font: { size: 14 } } }, { displayModeBar: false });
+
+  const minAvl = Math.min(...tsfu);
+  const bindIdx = tsfu.indexOf(minAvl);
+  document.getElementById("kpiMin").textContent = fmt(minAvl);
+  document.getElementById("kpiBind").textContent = "t = " + bindIdx;
+  document.getElementById("kpiCfMax").textContent = fmt(tsfcfu[0]);
+  document.getElementById("kpiCfTerm").textContent = fmt(tsfcfu[tsfcfu.length - 1]);
+  document.querySelector("#kpiMin").parentElement.classList.toggle("neg", minAvl < 0);
+}
+
+function bindGeneralFields() {
+  document.getElementById("cashInitial").value = state.cashInitial;
+  document.getElementById("horizon").value = state.horizon;
+  document.getElementById("riskFree").value = state.riskFree;
+}
+
+function renderAssetsTable() {
+  const tbody = document.querySelector("#assetsTable tbody");
+  tbody.innerHTML = "";
+  state.assets.forEach((a, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${a.name}"></td>
+      <td><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></td>
+      <td><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></td>
+      <td><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></td>
+      <td><button class="btn small danger" data-rm="${idx}">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderSourcesTable() {
+  const tbody = document.querySelector("#sourcesTable tbody");
+  tbody.innerHTML = "";
+  state.sources.forEach((s, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="name"><input type="text" data-i="${idx}" data-k="name" value="${s.name}"></td>
+      <td><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></td>
+      <td><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></td>
+      <td><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></td>
+      <td><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></td>
+      <td><button class="btn small danger" data-rm="${idx}">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function rebuild() {
+  bindGeneralFields();
+  renderAssetsTable();
+  renderSourcesTable();
+  render();
+}
+
+function loadPreset(name) {
+  state = JSON.parse(JSON.stringify(PRESETS[name]));
+  rebuild();
+}
+
+document.getElementById("presetBalanced").addEventListener("click", () => loadPreset("balanced"));
+document.getElementById("presetCanonical").addEventListener("click", () => loadPreset("canonical"));
+document.getElementById("presetBrazilian").addEventListener("click", () => loadPreset("brazilian"));
+
+document.getElementById("cashInitial").addEventListener("input", e => { state.cashInitial = +e.target.value; render(); });
+document.getElementById("horizon").addEventListener("input", e => {
+  state.horizon = Math.max(3, Math.min(20, +e.target.value));
+  rebuild();
+});
+document.getElementById("riskFree").addEventListener("input", e => { state.riskFree = +e.target.value; render(); });
+
+function attachListEvents(tableId, listKey, tableRenderer) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  tbody.addEventListener("input", e => {
+    const i = +e.target.dataset.i;
+    const k = e.target.dataset.k;
+    if (!isFinite(i) || !k) return;
+    if (k === "name") state[listKey][i][k] = e.target.value;
+    else state[listKey][i][k] = +e.target.value;
+    render();
+  });
+  tbody.addEventListener("click", e => {
+    if (e.target.dataset.rm !== undefined) {
+      const i = +e.target.dataset.rm;
+      state[listKey].splice(i, 1);
+      tableRenderer();
+      render();
+    }
+  });
+}
+
+attachListEvents("assetsTable", "assets", renderAssetsTable);
+attachListEvents("sourcesTable", "sources", renderSourcesTable);
+
+document.getElementById("addAsset").addEventListener("click", () => {
+  state.assets.push({ name: "Novo ativo", notional: 100, maturity: Math.min(3, state.horizon), coupon: 0.05 });
+  renderAssetsTable();
+  render();
+});
+
+document.getElementById("addSource").addEventListener("click", () => {
+  state.sources.push({ name: "Nova fonte", notional: 100, maturity: Math.min(3, state.horizon), coupon: 0.03, runoff: 0.05 });
+  renderSourcesTable();
+  render();
+});
+
+rebuild();
+</script>
+
+</body>
+</html>

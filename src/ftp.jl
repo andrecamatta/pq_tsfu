@@ -157,3 +157,33 @@ function brazilian_bank(; horizon::Int = 6)
         horizon = horizon,
     )
 end
+
+"""
+    balanced_bank(; horizon=6)
+
+Banco estilizado com TSFu não-negativa em todo o horizonte. Útil para
+ilustrar o comportamento monotonicamente decrescente da TSFCFu sem o
+ruído de períodos com AVL negativo.
+"""
+function balanced_bank(; horizon::Int = 6)
+    return BankSnapshot(
+        name = "Banco balanceado",
+        cash_initial = 600.0,
+        assets = [
+            Asset(name = "Crédito 4y", notional = 200.0, maturity_periods = 4, coupon_rate = 0.06),
+            Asset(name = "Crédito 6y", notional = 100.0, maturity_periods = 6, coupon_rate = 0.07),
+        ],
+        funding_sources = [
+            FundingSource(name = "Depósito varejo estável", notional = 250.0, maturity_periods = horizon,
+                          coupon_rate = 0.02, stress_runoff_rate = 0.02, is_stable = true),
+            FundingSource(name = "LF 2y", notional = 200.0, maturity_periods = 2,
+                          coupon_rate = 0.04, stress_runoff_rate = 0.05),
+            FundingSource(name = "LF 4y", notional = 150.0, maturity_periods = 4,
+                          coupon_rate = 0.045, stress_runoff_rate = 0.03),
+            FundingSource(name = "Capital próprio", notional = 100.0, maturity_periods = horizon,
+                          coupon_rate = 0.0, stress_runoff_rate = 0.0, is_stable = true),
+        ],
+        risk_free_rate = 0.03,
+        horizon = horizon,
+    )
+end

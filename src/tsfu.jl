@@ -5,7 +5,7 @@ Calcula AVL(t₀, t) — o caixa disponível em t sob cenário de estresse,
 visto a partir de t₀=0. Soma o caixa inicial mais entradas contratuais
 de ativos e subtrai saídas estressadas de captação até t.
 
-Boundary conditions de Castagna e Fede (2013, §7.6):
+Boundary conditions de Castagna e Fede (2013):
 - AVL(t₀, t) ≥ 0 para todo t no horizonte (banco sobrevive)
 - AVL(t₀, tᵦ) = 0 no horizonte ideal (buffer right-sized)
 """
@@ -30,8 +30,6 @@ end
 
 Term Structure of Available Funding completa: vetor [AVL(t₀, 0),
 AVL(t₀, 1), …, AVL(t₀, T)] indexado pelos períodos do horizonte.
-
-Implementa a equação 7.2 de Castagna e Fede (2013).
 """
 function compute_tsfu(bank::BankSnapshot)
     return [project_avl(bank, t) for t in 0:bank.horizon]
@@ -53,72 +51,31 @@ function binding_horizon(bank::BankSnapshot)
 end
 
 """
-    roll_forward(bank, f)
+    compute_tsfcfu(bank)
 
-Avança a fotografia do banco para o período t_f, materializando as
-entradas e saídas realizadas até t_f e devolvendo um novo BankSnapshot
-com cash_initial atualizado e horizonte reduzido. Os ativos e fontes de
-captação que ainda não venceram permanecem no novo snapshot, com
-maturidades reduzidas em f.
+Term Structure of Forward Cumulated Funding (TSFCFu) conforme Castagna
+e Fede.
+
+Para cada vencimento Tᵢ no horizonte, agrega a liquidez disponível
+para investimento ilíquido em Tᵢ e em todas as maturidades posteriores
+até Tᵦ. Adaptação do modelo simplificado: soma das contribuições
+não-negativas da TSFu de Tᵢ até Tᵦ.
+
+A curva resultante é monotonicamente não-crescente em maturidade. O
+primeiro elemento iguala o cumulado total da TSFu ao longo do horizonte;
+o último elemento iguala o AVL terminal (se positivo).
 """
-function roll_forward(bank::BankSnapshot, f::Int)
-    new_cash = project_avl(bank, f)
-    new_assets = Asset[]
-    for a in bank.assets
-        if a.maturity_periods > f
-            push!(new_assets, Asset(
-                name = a.name,
-                notional = a.notional,
-                maturity_periods = a.maturity_periods - f,
-                coupon_rate = a.coupon_rate,
-            ))
-        end
-    end
-    new_sources = FundingSource[]
-    for s in bank.funding_sources
-        if s.maturity_periods > f
-            consumed = s.stress_runoff_rate * f
-            consumed = min(consumed, 1.0)
-            push!(new_sources, FundingSource(
-                name = s.name,
-                notional = s.notional * (1 - consumed),
-                maturity_periods = s.maturity_periods - f,
-                coupon_rate = s.coupon_rate,
-                stress_runoff_rate = s.stress_runoff_rate,
-                is_stable = s.is_stable,
-            ))
-        end
-    end
-    return BankSnapshot(
-        name = bank.name * " @ t=$f",
-        cash_initial = new_cash,
-        assets = new_assets,
-        funding_sources = new_sources,
-        risk_free_rate = bank.risk_free_rate,
-        horizon = bank.horizon - f,
-    )
-end
-
-"""
-    compute_tsfcf(bank)
-
-Term Structure of Forward Cumulated Funding: matriz de TSFu projetadas a
-partir de cada reavaliação futura t_f. A célula [f+1, k] contém
-AVL(t_f, t_{f+k}).
-
-Visão dinâmica que complementa a TSFu estática, conforme §7.6.1.
-"""
-function compute_tsfcf(bank::BankSnapshot)
+function compute_tsfcfu(bank::BankSnapshot)
     H = bank.horizon
-    # Inicializa com NaN para células fora do triangulo válido
-    surface = fill(NaN, H + 1, H + 1)
-    for f in 0:H
-        bank_at_f = (f == 0) ? bank : roll_forward(bank, f)
-        for k in 0:(H - f)
-            surface[f + 1, k + 1] = project_avl(bank_at_f, k)
-        end
+    tsfu = compute_tsfu(bank)
+    result = zeros(H + 1)
+    s = 0.0
+    # Soma sufixo: TSFCFu[i] = sum_{j=i}^{H} max(0, TSFu[j])
+    for i in H:-1:0
+        s += max(0.0, tsfu[i + 1])
+        result[i + 1] = s
     end
-    return surface
+    return result
 end
 
 """

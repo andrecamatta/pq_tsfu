@@ -48,22 +48,21 @@ using PQTSFu
         @test all(isfinite, tsfu)
     end
 
-    @testset "Roll forward preserva consistência" begin
-        bank = canonical_bank(horizon = 6)
-        bank_at_2 = PQTSFu.roll_forward(bank, 2)
-        @test bank_at_2.horizon == 4
-        # cash em t=0 do bank_at_2 deve igualar AVL(0,2) do banco original
-        @test bank_at_2.cash_initial ≈ project_avl(bank, 2)
+    @testset "TSFCFu monotônica não-crescente em maturidade" begin
+        bank = canonical_bank(horizon = 5)
+        tsfcfu = compute_tsfcfu(bank)
+        @test length(tsfcfu) == 6
+        for i in 1:(length(tsfcfu) - 1)
+            @test tsfcfu[i] >= tsfcfu[i+1] - 1e-9
+        end
     end
 
-    @testset "TSFcF tem mesma diagonal que TSFu" begin
+    @testset "TSFCFu primeiro elemento = soma cumulada da TSFu positiva" begin
         bank = canonical_bank(horizon = 5)
         tsfu = compute_tsfu(bank)
-        tsfcf = compute_tsfcf(bank)
-        # A primeira linha (f=0) deve coincidir com a TSFu
-        for k in 0:bank.horizon
-            @test tsfcf[1, k+1] ≈ tsfu[k+1]
-        end
+        tsfcfu = compute_tsfcfu(bank)
+        @test tsfcfu[1] ≈ sum(max(0.0, x) for x in tsfu)
+        @test tsfcfu[end] ≈ max(0.0, tsfu[end])
     end
 
     @testset "FTP curve crescente em prazo (caso típico)" begin
