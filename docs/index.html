@@ -140,17 +140,34 @@ body {
   .hero p { font-size: 16px; }
 }
 
-/* Main grid */
+/* Main layout — stacked */
 .layout {
   max-width: 1200px;
   margin: 48px auto 96px;
   padding: 0 48px;
-  display: grid;
-  grid-template-columns: 400px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 32px;
 }
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.controls .col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+@media (max-width: 820px) {
+  .controls { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .layout { padding: 0 24px; gap: 24px; }
+}
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
 @media (max-width: 980px) {
-  .layout { grid-template-columns: 1fr; padding: 0 24px; gap: 24px; }
+  .charts-row { grid-template-columns: 1fr; }
 }
 
 /* Cards */
@@ -159,7 +176,6 @@ body {
   border-radius: 40px;
   padding: 32px;
 }
-.card + .card { margin-top: 24px; }
 .card h2 {
   font-size: 20px;
   font-weight: 500;
@@ -454,77 +470,79 @@ footer .bottom {
 
 <main class="layout" id="calculadora">
 
-  <aside>
-    <div class="howto">
-      <span class="eyebrow">Como usar</span>
-      <p style="margin:8px 0 0;font-size:14px;color:var(--charcoal);">Escolha um preset, edite ativos e fontes. Os gráficos atualizam em tempo real.</p>
-    </div>
+  <div class="howto">
+    <span class="eyebrow">Como usar</span>
+    <p style="margin:8px 0 0;font-size:14px;color:var(--charcoal);">Escolha um preset, edite ativos e fontes. Os gráficos atualizam em tempo real.</p>
+  </div>
 
-    <div class="card">
-      <span class="eyebrow">Presets</span>
-      <h2>Bancos pré-configurados</h2>
-      <p class="sub">Carregue um cenário base e ajuste à vontade.</p>
-      <div class="presets">
-        <button class="btn" id="presetBalanced">Balanceado</button>
-        <button class="btn secondary" id="presetCanonical">Canônico (breach)</button>
-        <button class="btn secondary" id="presetBrazilian">S1 Brasil</button>
+  <div class="controls">
+    <div class="col">
+      <div class="card">
+        <span class="eyebrow">Presets</span>
+        <h2>Bancos pré-configurados</h2>
+        <p class="sub">Carregue um cenário base e ajuste à vontade.</p>
+        <div class="presets">
+          <button class="btn" id="presetBalanced">Balanceado</button>
+          <button class="btn secondary" id="presetCanonical">Canônico (breach)</button>
+          <button class="btn secondary" id="presetBrazilian">S1 Brasil</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="eyebrow">Parâmetros</span>
+        <h2>Configuração do banco</h2>
+        <p class="sub">Caixa inicial, horizonte e taxa risk-free.</p>
+        <div class="field">
+          <label>Caixa inicial</label>
+          <input type="number" id="cashInitial" step="10">
+        </div>
+        <div class="field">
+          <label>Horizonte (períodos)</label>
+          <input type="number" id="horizon" min="3" max="20" step="1">
+        </div>
+        <div class="field">
+          <label>Taxa risk-free (decimal)</label>
+          <input type="number" id="riskFree" step="0.005">
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <span class="eyebrow">Parâmetros</span>
-      <h2>Configuração do banco</h2>
-      <p class="sub">Caixa inicial, horizonte e taxa risk-free.</p>
-      <div class="field">
-        <label>Caixa inicial</label>
-        <input type="number" id="cashInitial" step="10">
+    <div class="col">
+      <div class="card">
+        <span class="eyebrow">Ativos</span>
+        <h2>Carteira de ativos</h2>
+        <p class="sub">Investimentos ilíquidos com prazo definido.</p>
+        <div class="rows" id="assetsList"></div>
+        <div class="add-row"><button class="btn secondary tiny" id="addAsset">+ adicionar ativo</button></div>
       </div>
-      <div class="field">
-        <label>Horizonte (períodos)</label>
-        <input type="number" id="horizon" min="3" max="20" step="1">
-      </div>
-      <div class="field">
-        <label>Taxa risk-free (decimal)</label>
-        <input type="number" id="riskFree" step="0.005">
-      </div>
-    </div>
 
-    <div class="card">
-      <span class="eyebrow">Ativos</span>
-      <h2>Carteira de ativos</h2>
-      <p class="sub">Investimentos ilíquidos com prazo definido.</p>
-      <div class="rows" id="assetsList"></div>
-      <div class="add-row"><button class="btn secondary tiny" id="addAsset">+ adicionar ativo</button></div>
-    </div>
-
-    <div class="card">
-      <span class="eyebrow">Captação</span>
-      <h2>Fontes de funding</h2>
-      <p class="sub">Liabilities com cupom e runoff stressado.</p>
-      <div class="rows" id="sourcesList"></div>
-      <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
-    </div>
-  </aside>
-
-  <section>
-    <div class="kpis">
-      <div class="kpi"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
-      <div class="kpi"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
-      <div class="kpi"><div class="lbl">TSFCFu (T₀)</div><div class="val" id="kpiCfMax">—</div></div>
-      <div class="kpi"><div class="lbl">TSFCFu (Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
-    </div>
-
-    <div class="charts">
-      <div class="chart">
-        <div class="head"><h3>TSFu — AVL(t₀, t)</h3><span class="meta">trajetória de caixa sob estresse</span></div>
-        <div id="chartTSFu"></div>
-      </div>
-      <div class="chart">
-        <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">monotonicamente decrescente em maturidade</span></div>
-        <div id="chartTSFCFu"></div>
+      <div class="card">
+        <span class="eyebrow">Captação</span>
+        <h2>Fontes de funding</h2>
+        <p class="sub">Liabilities com cupom e runoff stressado.</p>
+        <div class="rows" id="sourcesList"></div>
+        <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
       </div>
     </div>
-  </section>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
+    <div class="kpi"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
+    <div class="kpi"><div class="lbl">TSFCFu (T₀)</div><div class="val" id="kpiCfMax">—</div></div>
+    <div class="kpi"><div class="lbl">TSFCFu (Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart">
+      <div class="head"><h3>TSFu — AVL(t₀, t)</h3><span class="meta">trajetória de caixa sob estresse</span></div>
+      <div id="chartTSFu"></div>
+    </div>
+    <div class="chart">
+      <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">cumulado forward decrescente em maturidade</span></div>
+      <div id="chartTSFCFu"></div>
+    </div>
+  </div>
 
 </main>
 
