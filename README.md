@@ -1,14 +1,15 @@
 # pq_tsfu
 
 Pacote Julia que implementa a Term Structure of Available Funding (TSFu)
-e a Term Structure of Forward Cumulated Funding (TSFcF) com base no
-Capítulo 7 (§7.6 e §7.6.1) de Castagna e Fede (2013, *Measuring and
-Managing Liquidity Risk*), com aplicação ao Funds Transfer Pricing por
-maturidade conforme o método Matched-Maturity Marginal (Grant, 2011).
+e a Term Structure of Forward Cumulated Funding (TSFCFu) com base em
+Castagna e Fede (2013, *Measuring and Managing Liquidity Risk*), com
+aplicação ao Funds Transfer Pricing por maturidade.
 
 Companion code do artigo "Term structure of available funding e forward
-cumulated funding" (Pílulas de Quant), terceiro da série sobre o
-capítulo 7.
+cumulated funding" da publicação Pílulas de Quant.
+
+**Demo interativa:** <https://andrecamatta.github.io/pq_tsfu/> — editor de
+ativos e fontes de captação com gráficos de TSFu e TSFCFu em tempo real.
 
 ## Escopo
 
@@ -19,8 +20,8 @@ e perfis comportamentais distintos, e calcula:
   estresse, conforme equação 7.2 de Castagna e Fede.
 - Horizonte mais limitante (binding date) em que o buffer pré-posicionado
   precisa ter sido construído com tamanho suficiente.
-- TSFcF: matriz de TSFu projetadas a partir de cada reavaliação futura
-  t_f, fornecendo a visão dinâmica para tesouraria rolling-window.
+- TSFCFu: cumulado forward em cada vencimento T_i, monotonicamente
+  não-crescente em maturidade (eq. 7.16 de Castagna e Fede).
 - Curva de FTP por maturidade pelo método Matched-Maturity Marginal.
 - Preço interno de novo empréstimo de prazo arbitrário, com
   decomposição em risk-free, funding spread, liquidity premium e
@@ -56,7 +57,7 @@ result = price_new_loan(bank_br, 50.0, 5; capital_charge = 0.005)
 ## Exemplos
 
 - `examples/01_canonical_tsfu.jl`: TSFu de banco canônico com identificação de horizonte mais limitante.
-- `examples/02_tsfcf_rolling.jl`: TSFcF como matriz de TSFu projetadas a partir de cada t_f.
+- `examples/02_tsfcfu_cumulative.jl`: TSFCFu como cumulado forward não-crescente em maturidade.
 - `examples/03_loan_pricing_5y.jl`: precificação de empréstimo de 5 anos via FTP por maturidade.
 
 Executar:
@@ -81,8 +82,8 @@ diagonal coincidente com TSFu, FTP crescente em prazo, pricing de empréstimo.
 src/
   PQTSFu.jl     # módulo principal
   types.jl      # Asset, FundingSource, BankSnapshot
-  tsfu.jl       # project_avl, compute_tsfu, compute_tsfcf, roll_forward
-  ftp.jl        # funding_curve_at, matched_maturity_ftp_curve, price_new_loan
+  tsfu.jl       # project_avl, compute_tsfu, compute_tsfcfu, binding_horizon
+  ftp.jl        # funding_curve_at, matched_maturity_ftp_curve, price_new_loan, balanced_bank
 examples/
   01_canonical_tsfu.jl
   02_tsfcf_rolling.jl
