@@ -514,7 +514,7 @@ footer .bottom {
       <div class="card">
         <span class="eyebrow">Fontes de captação</span>
         <h2>Composição do funding</h2>
-        <p class="sub">Cada fonte tem montante inicial L, prazo típico τ entre rolagens e taxa de gap x (fração que falha em rolar sob estresse).</p>
+        <p class="sub">Cada fonte tem montante inicial L levantado em T₀, prazo típico τ entre rolagens e taxa de falha na rolagem x (fração do saldo que não consegue ser refinanciada a cada rolagem sob estresse).</p>
         <div class="rows" id="sourcesList"></div>
         <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
       </div>
@@ -739,7 +739,7 @@ function renderSourcesTable() {
       <div class="row-grid">
         <div class="cell"><label title="Montante inicial L_m levantado em T_0">Montante L</label><input type="number" data-i="${idx}" data-k="amount" step="10" value="${s.amount}"></div>
         <div class="cell"><label title="Prazo típico τ_m entre rolagens (em períodos)">Prazo τ</label><input type="number" data-i="${idx}" data-k="duration" step="1" min="1" max="${state.horizon}" value="${s.duration}"></div>
-        <div class="cell"><label title="Taxa de gap x_m: fração que falha em rolar sob estresse">Gap x</label><input type="number" data-i="${idx}" data-k="gap" step="0.05" min="0" max="1" value="${s.gap}"></div>
+        <div class="cell"><label title="Taxa de falha na rolagem (x_m no livro): fração do saldo que não consegue ser refinanciada sob estresse. Exemplo: 0,15 = 15% do saldo a rolar evapora a cada janela.">Falha rolagem x</label><input type="number" data-i="${idx}" data-k="gap" step="0.05" min="0" max="1" value="${s.gap}"></div>
       </div>
     `;
     list.appendChild(item);
