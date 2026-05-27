@@ -152,28 +152,9 @@ body {
 .controls { display: flex; flex-direction: column; gap: 24px; }
 .controls .lists {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
-}
-.controls .lists > * { min-width: 0; }
-@media (max-width: 820px) {
-  .controls .lists { grid-template-columns: 1fr; }
-}
-.config-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  margin-top: 18px;
-}
-.config-grid .field { margin-bottom: 0; }
-@media (max-width: 720px) {
-  .config-grid { grid-template-columns: 1fr; }
-}
-.config-divider {
-  border: 0;
-  border-top: 1px solid var(--ghost);
-  margin: 22px 0 18px;
 }
 @media (max-width: 720px) {
   .layout { padding: 0 24px; gap: 24px; }
@@ -185,6 +166,21 @@ body {
 }
 @media (max-width: 980px) {
   .charts-row { grid-template-columns: 1fr; }
+}
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+.config-grid .field { margin-bottom: 0; }
+@media (max-width: 720px) {
+  .config-grid { grid-template-columns: 1fr; }
+}
+.config-divider {
+  border: 0;
+  border-top: 1px solid var(--ghost);
+  margin: 22px 0 18px;
 }
 
 /* Cards */
@@ -213,13 +209,6 @@ body {
   padding: 28px 32px;
   border: 1px solid var(--ghost);
 }
-.howto ol {
-  margin: 12px 0 0 0;
-  padding-left: 22px;
-  font-size: 14px;
-  color: var(--charcoal);
-}
-.howto li { margin-bottom: 6px; }
 
 /* Buttons */
 .btn {
@@ -264,7 +253,6 @@ body {
 }
 .btn.icon:hover { background: var(--ink); color: var(--canvas); }
 
-/* Preset chip group */
 .presets {
   display: flex;
   flex-wrap: wrap;
@@ -305,7 +293,7 @@ input[type="text"]:focus, input[type="number"]:focus {
   box-shadow: 0 0 0 3px rgba(20, 20, 19, 0.06);
 }
 
-/* Rows (assets/sources) */
+/* Source rows */
 .rows { display: flex; flex-direction: column; gap: 10px; }
 .row-item {
   background: var(--white);
@@ -321,9 +309,8 @@ input[type="text"]:focus, input[type="number"]:focus {
 .row-grid {
   display: grid;
   gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
 }
-.row-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-.row-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 .row-grid .cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .row-grid .cell label {
   font-size: 10px;
@@ -383,7 +370,6 @@ input[type="text"]:focus, input[type="number"]:focus {
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.kpi.neg .val { color: var(--signal); }
 @media (max-width: 980px) {
   .kpis { grid-template-columns: 1fr 1fr; }
 }
@@ -490,57 +476,45 @@ footer .bottom {
 
 <section class="hero">
   <span class="eyebrow">Calculadora interativa</span>
-  <h1>TSFu e TSFCFu — visualize liquidez sob estresse e cumulado forward</h1>
-  <p>Calculadora de apoio ao artigo sobre Term Structure of Available Funding e Forward Cumulated Funding. Edite os parâmetros do banco e veja as curvas atualizarem em tempo real. Código completo no repositório <a href="https://github.com/andrecamatta/pq_tsfu">pq_tsfu</a>.</p>
+  <h1>TSFu e TSFCFu — aloque funding por maturidade sob estresse de rolagem</h1>
+  <p>Calculadora de apoio ao artigo sobre Term Structure of Available Funding (Castagna e Fede, §7.6). Edite fontes de captação com seus prazos típicos τ e taxas de gap x%, ajuste β e horizonte, e veja TSFu e TSFCFu atualizarem em tempo real. Código completo no repositório <a href="https://github.com/andrecamatta/pq_tsfu">pq_tsfu</a>.</p>
 </section>
 
 <main class="layout" id="calculadora">
 
   <div class="howto">
     <span class="eyebrow">Como usar</span>
-    <p style="margin:8px 0 0;font-size:14px;color:var(--charcoal);">Escolha um preset, edite ativos e fontes. Os gráficos atualizam em tempo real.</p>
+    <p style="margin:8px 0 0;font-size:14px;color:var(--charcoal);">Escolha um preset, edite fontes de captação e o parâmetro β. Os gráficos atualizam em tempo real.</p>
   </div>
 
   <div class="controls">
     <div class="card">
       <span class="eyebrow">Configuração</span>
       <h2>Banco e cenário</h2>
-      <p class="sub">Escolha um preset ou ajuste caixa, horizonte e taxa risk-free.</p>
+      <p class="sub">Escolha um preset ou ajuste horizonte e preferência por liquidez β.</p>
       <div class="presets">
-        <button class="btn" id="presetBalanced">Balanceado</button>
-        <button class="btn secondary" id="presetCanonical">Canônico (breach)</button>
-        <button class="btn secondary" id="presetBrazilian">S1 Brasil</button>
+        <button class="btn" id="presetBrazilian">Brasil S1</button>
+        <button class="btn secondary" id="presetBook">Castagna &amp; Fede 7.6.1</button>
+        <button class="btn secondary" id="presetSimple">Didático</button>
       </div>
       <hr class="config-divider">
       <div class="config-grid">
         <div class="field">
-          <label>Caixa inicial</label>
-          <input type="number" id="cashInitial" step="10">
+          <label>Horizonte T<sub>b</sub> (períodos)</label>
+          <input type="number" id="horizon" min="2" max="30" step="1">
         </div>
         <div class="field">
-          <label>Horizonte (períodos)</label>
-          <input type="number" id="horizon" min="3" max="20" step="1">
-        </div>
-        <div class="field">
-          <label>Taxa risk-free (decimal)</label>
-          <input type="number" id="riskFree" step="0.005">
+          <label title="Preferência por ativos líquidos (β): fração do gap mantida em ativos líquidos genuínos">Preferência β (decimal)</label>
+          <input type="number" id="beta" min="0" max="1" step="0.05">
         </div>
       </div>
     </div>
 
     <div class="lists">
       <div class="card">
-        <span class="eyebrow">Ativos</span>
-        <h2>Carteira de ativos</h2>
-        <p class="sub">Investimentos ilíquidos com prazo definido.</p>
-        <div class="rows" id="assetsList"></div>
-        <div class="add-row"><button class="btn secondary tiny" id="addAsset">+ adicionar ativo</button></div>
-      </div>
-
-      <div class="card">
-        <span class="eyebrow">Captação</span>
-        <h2>Fontes de funding</h2>
-        <p class="sub">Liabilities com cupom e taxa de evasão (runoff) stressada.</p>
+        <span class="eyebrow">Fontes de captação</span>
+        <h2>Composição do funding</h2>
+        <p class="sub">Cada fonte tem montante inicial L, prazo típico τ entre rolagens e taxa de gap x (fração que falha em rolar sob estresse).</p>
         <div class="rows" id="sourcesList"></div>
         <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
       </div>
@@ -548,22 +522,22 @@ footer .bottom {
   </div>
 
   <div class="kpis">
-    <div class="kpi"><div class="lbl">AVL mínimo</div><div class="val" id="kpiMin">—</div></div>
-    <div class="kpi"><div class="lbl">Binding date</div><div class="val" id="kpiBind">—</div></div>
-    <div class="kpi"><div class="lbl">TSFCFu (T₀)</div><div class="val" id="kpiCfMax">—</div></div>
-    <div class="kpi"><div class="lbl">TSFCFu (Tᵦ)</div><div class="val" id="kpiCfTerm">—</div></div>
+    <div class="kpi"><div class="lbl">Funding total</div><div class="val" id="kpiTotal">—</div></div>
+    <div class="kpi"><div class="lbl">TSFu (T<sub>b</sub>)</div><div class="val" id="kpiTerm">—</div></div>
+    <div class="kpi"><div class="lbl">TSFCFu (T<sub>1</sub>)</div><div class="val" id="kpiCfMax">—</div></div>
+    <div class="kpi"><div class="lbl">TSFCFu (T<sub>b</sub>)</div><div class="val" id="kpiCfTerm">—</div></div>
   </div>
 
   <div class="charts-row">
     <div class="chart">
-      <div class="head"><h3>TSFu — AVL(t₀, t)</h3><span class="meta">trajetória de caixa sob estresse</span></div>
+      <div class="head"><h3>TSFu por maturidade</h3><span class="meta">contribuição AVL = (1−β)·FG por fonte</span></div>
       <div id="chartTSFu"></div>
-      <p class="note">Cada ponto é o caixa projetado em t sob runoff stressado das fontes de captação e amortizações dos ativos. Valores positivos indicam folga de liquidez; valores negativos sinalizam breach (banco insolvente naquele período sem buffer adicional). O <strong>vale (binding date)</strong> marca o horizonte mais demandante, em que o buffer de liquidez precisa ter sido pré-construído com tamanho suficiente para zerar o gap.</p>
+      <p class="note">Cada barra mostra a alocação ilíquida disponível na maturidade T, decomposta por fonte de captação. Em maturidades de rolagem coincidentes, várias fontes contribuem simultaneamente. O <strong>terminal em T<sub>b</sub></strong> recebe o saldo residual L·(1−x)<sup>N</sup> de cada fonte que sobreviveu a todas as rolagens. Por construção, soma da TSFu + parcela líquida AVL_L iguala o funding total levantado.</p>
     </div>
     <div class="chart">
-      <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">cumulado forward decrescente em maturidade</span></div>
+      <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">orçamento agregado de comprometimento</span></div>
       <div id="chartTSFCFu"></div>
-      <p class="note">Soma cumulativa dos AVL não-negativos do horizonte Tᵢ até T_b. Representa o <strong>teto agregado</strong> de comprometimento em investimentos ilíquidos a partir de cada vencimento Tᵢ. A curva é monotonicamente não-crescente: máxima em T₀ e decrescente conforme o funding é consumido por runoff. O valor terminal coincide com max(0, AVL em T_b).</p>
+      <p class="note">Soma sufixo da TSFu: para cada maturidade T<sub>i</sub>, mostra o teto agregado de comprometimento em investimentos ilíquidos com vencimento igual ou superior a T<sub>i</sub>. A curva é <strong>monotonicamente não-crescente</strong>: máxima em T<sub>1</sub> (todo o funding ilíquido ainda disponível) e converge para a contribuição terminal em T<sub>b</sub>.</p>
     </div>
   </div>
 
@@ -607,96 +581,70 @@ footer .bottom {
 
 <script>
 const PRESETS = {
-  balanced: {
-    cashInitial: 600, horizon: 6, riskFree: 0.03,
-    assets: [
-      { name: "Crédito 4y", notional: 200, maturity: 4, coupon: 0.06 },
-      { name: "Crédito 6y", notional: 100, maturity: 6, coupon: 0.07 },
-    ],
-    sources: [
-      { name: "Depósito varejo estável", notional: 250, maturity: 6, coupon: 0.02, runoff: 0.02 },
-      { name: "LF 2y", notional: 200, maturity: 2, coupon: 0.04, runoff: 0.05 },
-      { name: "LF 4y", notional: 150, maturity: 4, coupon: 0.045, runoff: 0.03 },
-      { name: "Capital próprio", notional: 100, maturity: 6, coupon: 0.0, runoff: 0.0 },
-    ],
-  },
-  canonical: {
-    cashInitial: 50, horizon: 6, riskFree: 0.03,
-    assets: [
-      { name: "Empréstimo 5y", notional: 500, maturity: 5, coupon: 0.05 },
-      { name: "Empréstimo 3y", notional: 300, maturity: 3, coupon: 0.04 },
-    ],
-    sources: [
-      { name: "Depósito varejo", notional: 400, maturity: 1, coupon: 0.025, runoff: 0.05 },
-      { name: "CDB atacado 1y", notional: 200, maturity: 1, coupon: 0.035, runoff: 0.20 },
-      { name: "LF atacado 3y", notional: 150, maturity: 3, coupon: 0.045, runoff: 0.10 },
-      { name: "Capital próprio", notional: 100, maturity: 6, coupon: 0.0, runoff: 0.0 },
-    ],
-  },
   brazilian: {
-    cashInitial: 80, horizon: 6, riskFree: 0.115,
-    assets: [
-      { name: "Crédito imobiliário 5y", notional: 600, maturity: 5, coupon: 0.13 },
-      { name: "Crédito empresarial 3y", notional: 400, maturity: 3, coupon: 0.14 },
-    ],
+    horizon: 10, beta: 0.20,
     sources: [
-      { name: "Depósito poupança", notional: 350, maturity: 1, coupon: 0.07, runoff: 0.05 },
-      { name: "CDB 1y FGC", notional: 250, maturity: 1, coupon: 0.115, runoff: 0.10 },
-      { name: "LF 2y", notional: 200, maturity: 2, coupon: 0.125, runoff: 0.15 },
-      { name: "LF 3y", notional: 150, maturity: 3, coupon: 0.130, runoff: 0.10 },
-      { name: "Capital próprio", notional: 130, maturity: 6, coupon: 0.0, runoff: 0.0 },
+      { name: "Poupança varejo", amount: 400, duration: 5,  gap: 0.10 },
+      { name: "CDB FGC 1y",      amount: 250, duration: 1,  gap: 0.15 },
+      { name: "LF atacado 2y",   amount: 200, duration: 2,  gap: 0.30 },
+      { name: "LF atacado 5y",   amount: 150, duration: 5,  gap: 0.40 },
+      { name: "Capital próprio", amount: 100, duration: 10, gap: 0.00 },
+    ],
+  },
+  book: {
+    horizon: 10, beta: 0.20,
+    sources: [
+      { name: "L1", amount: 100, duration: 1, gap: 0.20 },
+      { name: "L2", amount: 150, duration: 4, gap: 0.40 },
+      { name: "L3", amount: 90,  duration: 7, gap: 0.70 },
+    ],
+  },
+  simple: {
+    horizon: 6, beta: 0.20,
+    sources: [
+      { name: "Depósito 1y", amount: 200, duration: 1, gap: 0.15 },
+      { name: "LF 3y",       amount: 150, duration: 3, gap: 0.30 },
     ],
   },
 };
 
-let state = JSON.parse(JSON.stringify(PRESETS.balanced));
+const COLORS = ["#141413", "#CF4500", "#F37338", "#3860BE", "#9A3A0A", "#5a6b3c", "#6b3c5a"];
 
-function assetCashflowAt(asset, period) {
-  if (period > asset.maturity || period < 1) return 0;
-  const interest = asset.notional * asset.coupon;
-  if (period === asset.maturity) return interest + asset.notional;
-  return interest;
+let state = JSON.parse(JSON.stringify(PRESETS.brazilian));
+
+function numRollovers(source, horizon) {
+  return Math.max(0, Math.ceil(horizon / source.duration) - 1);
+}
+function fundingGap(source, n) {
+  return source.gap * source.amount * Math.pow(1 - source.gap, n - 1);
+}
+function terminalAmount(source, horizon) {
+  const N = numRollovers(source, horizon);
+  return source.amount * Math.pow(1 - source.gap, N);
 }
 
-function fundingOutflowAt(source, period) {
-  if (period > source.maturity || period < 1) return 0;
-  if (period === source.maturity) {
-    let consumed = source.runoff * (source.maturity - 1);
-    consumed = Math.min(consumed, 1);
-    const residualPrincipal = source.notional * (1 - consumed);
-    const interest = source.notional * (1 - consumed) * source.coupon;
-    return residualPrincipal + interest;
-  }
-  let consumedBefore = source.runoff * (period - 1);
-  consumedBefore = Math.min(consumedBefore, 1);
-  const runoff = source.notional * source.runoff;
-  const interest = source.notional * (1 - consumedBefore) * source.coupon;
-  return runoff + interest;
-}
-
-function projectAVL(t) {
-  if (t < 0) return state.cashInitial;
-  let cash = state.cashInitial;
-  for (let k = 1; k <= t; k++) {
-    for (const a of state.assets) cash += assetCashflowAt(a, k);
-    for (const s of state.sources) cash -= fundingOutflowAt(s, k);
-  }
-  return cash;
-}
-
-function computeTSFu() {
-  const out = [];
-  for (let t = 0; t <= state.horizon; t++) out.push(projectAVL(t));
+// Returns array of arrays: per_source[m][t-1] = contribution of source m at maturity t
+function computePerSourceTSFu() {
+  const H = state.horizon;
+  const beta = state.beta;
+  const out = state.sources.map(() => new Array(H).fill(0));
+  state.sources.forEach((s, m) => {
+    const N = numRollovers(s, H);
+    for (let n = 1; n <= N; n++) {
+      const t = n * s.duration;
+      if (t <= H) out[m][t - 1] += (1 - beta) * fundingGap(s, n);
+    }
+    out[m][H - 1] += terminalAmount(s, H);
+  });
   return out;
 }
 
-function computeTSFCFu() {
-  const tsfu = computeTSFu();
-  const H = state.horizon;
-  const out = new Array(H + 1).fill(0);
+function computeTSFCFu(totalTSFu) {
+  const H = totalTSFu.length;
+  const out = new Array(H).fill(0);
   let s = 0;
-  for (let i = H; i >= 0; i--) {
-    s += Math.max(0, tsfu[i]);
+  for (let i = H - 1; i >= 0; i--) {
+    s += totalTSFu[i];
     out[i] = s;
   }
   return out;
@@ -708,82 +656,73 @@ function fmt(v) {
 }
 
 function render() {
-  const tsfu = computeTSFu();
-  const tsfcfu = computeTSFCFu();
-  const xs = Array.from({ length: tsfu.length }, (_, i) => i);
+  const perSource = computePerSourceTSFu();
+  const H = state.horizon;
+  const xs = Array.from({ length: H }, (_, i) => i + 1);
+  const totalTSFu = xs.map((_, i) => perSource.reduce((acc, src) => acc + src[i], 0));
+  const tsfcfu = computeTSFCFu(totalTSFu);
 
   const fontFamily = '"Sofia Sans", "MarkForMC", Arial, sans-serif';
-  const layoutBase = {
-    margin: { l: 56, r: 16, t: 12, b: 44 },
+  const axisBase = {
+    margin: { l: 60, r: 16, t: 12, b: 44 },
     font: { family: fontFamily, size: 13, color: "#141413" },
     paper_bgcolor: "#FFFFFF",
     plot_bgcolor: "#FCFBFA",
     xaxis: {
-      title: { text: "T (período)", font: { size: 12, color: "#696969" } },
+      title: { text: "Maturidade T", font: { size: 12, color: "#696969" } },
       gridcolor: "#EFE9E2",
-      zerolinecolor: "#D1CDC7",
       tickfont: { color: "#555555" },
+      tickmode: "array",
+      tickvals: xs,
     },
     yaxis: {
       gridcolor: "#EFE9E2",
-      zerolinecolor: "#9A3A0A",
+      zerolinecolor: "#D1CDC7",
       tickfont: { color: "#555555" },
       tickformat: ",.0f",
     },
-    showlegend: false,
-    height: 320,
+    height: 340,
+    barmode: "stack",
+    showlegend: true,
+    legend: { orientation: "h", y: -0.22, font: { size: 11, color: "#555555" } },
   };
 
-  Plotly.react("chartTSFu", [
-    { x: xs, y: tsfu, type: "scatter", mode: "lines+markers",
-      line: { color: "#141413", width: 2.5, shape: "spline", smoothing: 0.4 },
-      marker: { size: 8, color: "#141413" },
-      fill: "tozeroy", fillcolor: "rgba(207,69,0,0.10)",
-      hovertemplate: "t=%{x}<br>AVL=%{y:,.2f}<extra></extra>" }
-  ], layoutBase, { displayModeBar: false, responsive: true });
+  const tsfuTraces = state.sources.map((s, m) => ({
+    name: s.name,
+    type: "bar",
+    x: xs,
+    y: perSource[m],
+    marker: { color: COLORS[m % COLORS.length] },
+    hovertemplate: `${s.name}<br>T=%{x}<br>AVL=%{y:,.2f}<extra></extra>`,
+  }));
+  Plotly.react("chartTSFu", tsfuTraces, axisBase, { displayModeBar: false, responsive: true });
 
-  Plotly.react("chartTSFCFu", [
-    { x: xs, y: tsfcfu, type: "scatter", mode: "lines+markers",
-      line: { color: "#9A3A0A", width: 2.5, shape: "spline", smoothing: 0.4 },
-      marker: { size: 8, color: "#9A3A0A" },
-      fill: "tozeroy", fillcolor: "rgba(243,115,56,0.10)",
-      hovertemplate: "T_i=%{x}<br>TSFCFu=%{y:,.2f}<extra></extra>" }
-  ], layoutBase, { displayModeBar: false, responsive: true });
+  const tsfcfuLayout = {
+    ...axisBase,
+    barmode: undefined,
+    showlegend: false,
+    legend: undefined,
+    margin: { l: 60, r: 16, t: 12, b: 44 },
+    height: 340,
+  };
+  Plotly.react("chartTSFCFu", [{
+    x: xs, y: tsfcfu, type: "scatter", mode: "lines+markers",
+    line: { color: "#9A3A0A", width: 2.5, shape: "spline", smoothing: 0.4 },
+    marker: { size: 8, color: "#9A3A0A" },
+    fill: "tozeroy", fillcolor: "rgba(243,115,56,0.10)",
+    hovertemplate: "T_i=%{x}<br>TSFCFu=%{y:,.2f}<extra></extra>",
+  }], tsfcfuLayout, { displayModeBar: false, responsive: true });
 
-  const minAvl = Math.min(...tsfu);
-  const bindIdx = tsfu.indexOf(minAvl);
-  document.getElementById("kpiMin").textContent = fmt(minAvl);
-  document.getElementById("kpiBind").textContent = "t = " + bindIdx;
+  const totalFunding = state.sources.reduce((acc, s) => acc + s.amount, 0);
+  document.getElementById("kpiTotal").textContent = fmt(totalFunding);
+  document.getElementById("kpiTerm").textContent = fmt(totalTSFu[H - 1]);
   document.getElementById("kpiCfMax").textContent = fmt(tsfcfu[0]);
-  document.getElementById("kpiCfTerm").textContent = fmt(tsfcfu[tsfcfu.length - 1]);
-  document.querySelector("#kpiMin").parentElement.classList.toggle("neg", minAvl < 0);
+  document.getElementById("kpiCfTerm").textContent = fmt(tsfcfu[H - 1]);
 }
 
 function bindGeneralFields() {
-  document.getElementById("cashInitial").value = state.cashInitial;
   document.getElementById("horizon").value = state.horizon;
-  document.getElementById("riskFree").value = state.riskFree;
-}
-
-function renderAssetsTable() {
-  const list = document.getElementById("assetsList");
-  list.innerHTML = "";
-  state.assets.forEach((a, idx) => {
-    const item = document.createElement("div");
-    item.className = "row-item";
-    item.innerHTML = `
-      <div class="row-head">
-        <input type="text" data-i="${idx}" data-k="name" value="${a.name}" placeholder="Nome do ativo">
-        <button class="btn icon" data-rm="${idx}" title="remover">×</button>
-      </div>
-      <div class="row-grid cols-3">
-        <div class="cell"><label>Notional</label><input type="number" data-i="${idx}" data-k="notional" step="10" value="${a.notional}"></div>
-        <div class="cell"><label>Maturidade</label><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${a.maturity}"></div>
-        <div class="cell"><label>Cupom</label><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${a.coupon}"></div>
-      </div>
-    `;
-    list.appendChild(item);
-  });
+  document.getElementById("beta").value = state.beta;
 }
 
 function renderSourcesTable() {
@@ -797,11 +736,10 @@ function renderSourcesTable() {
         <input type="text" data-i="${idx}" data-k="name" value="${s.name}" placeholder="Nome da fonte">
         <button class="btn icon" data-rm="${idx}" title="remover">×</button>
       </div>
-      <div class="row-grid cols-4">
-        <div class="cell"><label>Notional</label><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></div>
-        <div class="cell"><label>Maturidade</label><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></div>
-        <div class="cell"><label>Cupom</label><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></div>
-        <div class="cell"><label title="Taxa de evasão (runoff): fração que escoa por período sob estresse">Taxa de evasão</label><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></div>
+      <div class="row-grid">
+        <div class="cell"><label title="Montante inicial L_m levantado em T_0">Montante L</label><input type="number" data-i="${idx}" data-k="amount" step="10" value="${s.amount}"></div>
+        <div class="cell"><label title="Prazo típico τ_m entre rolagens (em períodos)">Prazo τ</label><input type="number" data-i="${idx}" data-k="duration" step="1" min="1" max="${state.horizon}" value="${s.duration}"></div>
+        <div class="cell"><label title="Taxa de gap x_m: fração que falha em rolar sob estresse">Gap x</label><input type="number" data-i="${idx}" data-k="gap" step="0.05" min="0" max="1" value="${s.gap}"></div>
       </div>
     `;
     list.appendChild(item);
@@ -810,9 +748,9 @@ function renderSourcesTable() {
 
 function setActivePreset(name) {
   const btns = {
-    balanced: document.getElementById("presetBalanced"),
-    canonical: document.getElementById("presetCanonical"),
     brazilian: document.getElementById("presetBrazilian"),
+    book: document.getElementById("presetBook"),
+    simple: document.getElementById("presetSimple"),
   };
   Object.entries(btns).forEach(([k, b]) => {
     b.classList.toggle("secondary", k !== name);
@@ -821,7 +759,6 @@ function setActivePreset(name) {
 
 function rebuild() {
   bindGeneralFields();
-  renderAssetsTable();
   renderSourcesTable();
   render();
 }
@@ -832,55 +769,46 @@ function loadPreset(name) {
   setActivePreset(name);
 }
 
-document.getElementById("presetBalanced").addEventListener("click", () => loadPreset("balanced"));
-document.getElementById("presetCanonical").addEventListener("click", () => loadPreset("canonical"));
 document.getElementById("presetBrazilian").addEventListener("click", () => loadPreset("brazilian"));
+document.getElementById("presetBook").addEventListener("click", () => loadPreset("book"));
+document.getElementById("presetSimple").addEventListener("click", () => loadPreset("simple"));
 
-document.getElementById("cashInitial").addEventListener("input", e => { state.cashInitial = +e.target.value; render(); });
 document.getElementById("horizon").addEventListener("input", e => {
-  state.horizon = Math.max(3, Math.min(20, +e.target.value));
+  state.horizon = Math.max(2, Math.min(30, +e.target.value));
   rebuild();
 });
-document.getElementById("riskFree").addEventListener("input", e => { state.riskFree = +e.target.value; render(); });
-
-function attachListEvents(containerId, listKey, tableRenderer) {
-  const root = document.getElementById(containerId);
-  root.addEventListener("input", e => {
-    const i = +e.target.dataset.i;
-    const k = e.target.dataset.k;
-    if (!isFinite(i) || !k) return;
-    if (k === "name") state[listKey][i][k] = e.target.value;
-    else state[listKey][i][k] = +e.target.value;
-    render();
-  });
-  root.addEventListener("click", e => {
-    const rm = e.target.closest("[data-rm]");
-    if (rm) {
-      const i = +rm.dataset.rm;
-      state[listKey].splice(i, 1);
-      tableRenderer();
-      render();
-    }
-  });
-}
-
-attachListEvents("assetsList", "assets", renderAssetsTable);
-attachListEvents("sourcesList", "sources", renderSourcesTable);
-
-document.getElementById("addAsset").addEventListener("click", () => {
-  state.assets.push({ name: "Novo ativo", notional: 100, maturity: Math.min(3, state.horizon), coupon: 0.05 });
-  renderAssetsTable();
+document.getElementById("beta").addEventListener("input", e => {
+  state.beta = Math.max(0, Math.min(1, +e.target.value));
   render();
 });
 
+const sourcesRoot = document.getElementById("sourcesList");
+sourcesRoot.addEventListener("input", e => {
+  const i = +e.target.dataset.i;
+  const k = e.target.dataset.k;
+  if (!isFinite(i) || !k) return;
+  if (k === "name") state.sources[i][k] = e.target.value;
+  else state.sources[i][k] = +e.target.value;
+  render();
+});
+sourcesRoot.addEventListener("click", e => {
+  const rm = e.target.closest("[data-rm]");
+  if (rm) {
+    const i = +rm.dataset.rm;
+    state.sources.splice(i, 1);
+    renderSourcesTable();
+    render();
+  }
+});
+
 document.getElementById("addSource").addEventListener("click", () => {
-  state.sources.push({ name: "Nova fonte", notional: 100, maturity: Math.min(3, state.horizon), coupon: 0.03, runoff: 0.05 });
+  state.sources.push({ name: "Nova fonte", amount: 100, duration: Math.min(2, state.horizon), gap: 0.10 });
   renderSourcesTable();
   render();
 });
 
 rebuild();
-setActivePreset("balanced");
+setActivePreset("brazilian");
 </script>
 
 </body>
