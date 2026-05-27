@@ -5,7 +5,7 @@ e a Term Structure of Forward Cumulated Funding (TSFCFu) com base em
 Castagna e Fede (2013, *Measuring and Managing Liquidity Risk*), com
 aplicação ao Funds Transfer Pricing por maturidade.
 
-Companion code do artigo "Term structure of available funding e forward
+Código de apoio ao artigo "Term structure of available funding e forward
 cumulated funding" da publicação Pílulas de Quant.
 
 **Demo interativa:** <https://andrecamatta.github.io/pq_tsfu/> — editor de
