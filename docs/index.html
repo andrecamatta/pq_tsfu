@@ -449,6 +449,32 @@ input[type="text"]:focus, input[type="number"]:focus {
   font-size: 12px;
   color: var(--slate);
 }
+.chart .toggle {
+  display: inline-flex;
+  border: 1px solid var(--ghost);
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--lifted);
+  gap: 0;
+}
+.chart .toggle button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.22px;
+  color: var(--slate);
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 100ms ease;
+}
+.chart .toggle button.active {
+  background: var(--ink);
+  color: var(--canvas);
+}
+.chart .toggle button:hover:not(.active) { color: var(--ink); }
 .chart .note {
   margin: 14px 8px 4px;
   padding-top: 14px;
@@ -618,9 +644,16 @@ footer .bottom {
 
   <div class="charts-row">
     <div class="chart">
-      <div class="head"><h3>TSFu por maturidade</h3><span class="meta">contribuição AVL = (1−β)·FG por fonte</span></div>
+      <div class="head">
+        <h3>TSFu por maturidade</h3>
+        <div class="toggle" id="tsfuToggle">
+          <button data-view="nl" class="active">AVL ilíquida</button>
+          <button data-view="l">AVL líquida</button>
+          <button data-view="both">Ambas</button>
+        </div>
+      </div>
       <div id="chartTSFu"></div>
-      <p class="note">Cada barra mostra a alocação ilíquida disponível na maturidade T, decomposta por fonte de captação. Em maturidades de rolagem coincidentes, várias fontes contribuem simultaneamente. O <strong>terminal em T<sub>b</sub></strong> recebe o saldo residual L·(1−x)<sup>N</sup> de cada fonte que sobreviveu a todas as rolagens. Por construção, soma da TSFu + parcela líquida AVL_L iguala o funding total levantado.</p>
+      <p class="note">Cada barra mostra a alocação por fonte na maturidade T. <strong>AVL ilíquida</strong> = (1−β)·FG vai para ativos ilíquidos vencendo em T (a TSFu propriamente dita). <strong>AVL líquida</strong> = β·FG fica em ativos líquidos como buffer de execução imediata na data da rolagem. Aumentar β desloca alocação de ilíquida para líquida, sem mudar o gap total a ser provisionado. O <strong>terminal em T<sub>b</sub></strong> sempre aparece como ilíquida pura (L·(1−x)<sup>N</sup>).</p>
     </div>
     <div class="chart">
       <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">orçamento agregado de comprometimento</span></div>
@@ -699,6 +732,7 @@ const PRESETS = {
 const COLORS = ["#141413", "#CF4500", "#F37338", "#3860BE", "#9A3A0A", "#5a6b3c", "#6b3c5a"];
 
 let state = JSON.parse(JSON.stringify(PRESETS.brazilian));
+let tsfuView = "nl"; // "nl" | "l" | "both"
 
 function numRollovers(source, horizon) {
   return Math.max(0, Math.ceil(horizon / source.duration) - 1);
@@ -711,20 +745,24 @@ function terminalAmount(source, horizon) {
   return source.amount * Math.pow(1 - source.gap, N);
 }
 
-// Returns array of arrays: per_source[m][t-1] = contribution of source m at maturity t
-function computePerSourceTSFu() {
+// Returns { nl: per_source[m][t-1], l: per_source[m][t-1] }
+function computePerSourceAVL() {
   const H = state.horizon;
   const beta = state.beta;
-  const out = state.sources.map(() => new Array(H).fill(0));
+  const nl = state.sources.map(() => new Array(H).fill(0));
+  const l = state.sources.map(() => new Array(H).fill(0));
   state.sources.forEach((s, m) => {
     const N = numRollovers(s, H);
     for (let n = 1; n <= N; n++) {
       const t = n * s.duration;
-      if (t <= H) out[m][t - 1] += (1 - beta) * fundingGap(s, n);
+      if (t <= H) {
+        nl[m][t - 1] += (1 - beta) * fundingGap(s, n);
+        l[m][t - 1]  += beta * fundingGap(s, n);
+      }
     }
-    out[m][H - 1] += terminalAmount(s, H);
+    nl[m][H - 1] += terminalAmount(s, H);
   });
-  return out;
+  return { nl, l };
 }
 
 function computeTSFCFu(totalTSFu) {
@@ -744,10 +782,10 @@ function fmt(v) {
 }
 
 function render() {
-  const perSource = computePerSourceTSFu();
+  const { nl: perSourceNL, l: perSourceL } = computePerSourceAVL();
   const H = state.horizon;
   const xs = Array.from({ length: H }, (_, i) => i + 1);
-  const totalTSFu = xs.map((_, i) => perSource.reduce((acc, src) => acc + src[i], 0));
+  const totalTSFu = xs.map((_, i) => perSourceNL.reduce((acc, src) => acc + src[i], 0));
   const tsfcfu = computeTSFCFu(totalTSFu);
 
   const fontFamily = '"Sofia Sans", "MarkForMC", Arial, sans-serif';
@@ -775,14 +813,35 @@ function render() {
     legend: { orientation: "h", y: -0.22, font: { size: 11, color: "#555555" } },
   };
 
-  const tsfuTraces = state.sources.map((s, m) => ({
-    name: s.name,
-    type: "bar",
-    x: xs,
-    y: perSource[m],
-    marker: { color: COLORS[m % COLORS.length] },
-    hovertemplate: `${s.name}<br>T=%{x}<br>AVL=%{y:,.2f}<extra></extra>`,
-  }));
+  const tsfuTraces = [];
+  state.sources.forEach((s, m) => {
+    const color = COLORS[m % COLORS.length];
+    if (tsfuView === "nl" || tsfuView === "both") {
+      tsfuTraces.push({
+        name: tsfuView === "both" ? `${s.name} (ilíq.)` : s.name,
+        type: "bar",
+        x: xs,
+        y: perSourceNL[m],
+        marker: { color: color },
+        hovertemplate: `${s.name} ilíquida<br>T=%{x}<br>AVL=%{y:,.2f}<extra></extra>`,
+      });
+    }
+    if (tsfuView === "l" || tsfuView === "both") {
+      tsfuTraces.push({
+        name: tsfuView === "both" ? `${s.name} (líq.)` : s.name,
+        type: "bar",
+        x: xs,
+        y: perSourceL[m],
+        marker: {
+          color: color,
+          pattern: tsfuView === "both"
+            ? { shape: "/", solidity: 0.4, fgcolor: "#FFFFFF", bgcolor: color }
+            : undefined,
+        },
+        hovertemplate: `${s.name} líquida<br>T=%{x}<br>AVL_L=%{y:,.2f}<extra></extra>`,
+      });
+    }
+  });
   Plotly.react("chartTSFu", tsfuTraces, axisBase, { displayModeBar: false, responsive: true });
 
   const tsfcfuLayout = {
@@ -892,6 +951,16 @@ sourcesRoot.addEventListener("click", e => {
 document.getElementById("addSource").addEventListener("click", () => {
   state.sources.push({ name: "Nova fonte", amount: 100, duration: Math.min(2, state.horizon), gap: 0.10 });
   renderSourcesTable();
+  render();
+});
+
+document.getElementById("tsfuToggle").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-view]");
+  if (!btn) return;
+  tsfuView = btn.dataset.view;
+  document.querySelectorAll("#tsfuToggle button").forEach(b => {
+    b.classList.toggle("active", b === btn);
+  });
   render();
 });
 
