@@ -519,7 +519,7 @@ footer .bottom {
       <div class="card">
         <span class="eyebrow">Captação</span>
         <h2>Fontes de funding</h2>
-        <p class="sub">Liabilities com cupom e runoff stressado.</p>
+        <p class="sub">Liabilities com cupom e taxa de evasão (runoff) stressada.</p>
         <div class="rows" id="sourcesList"></div>
         <div class="add-row"><button class="btn secondary tiny" id="addSource">+ adicionar fonte</button></div>
       </div>
@@ -778,7 +778,7 @@ function renderSourcesTable() {
         <div class="cell"><label>Notional</label><input type="number" data-i="${idx}" data-k="notional" step="10" value="${s.notional}"></div>
         <div class="cell"><label>Maturidade</label><input type="number" data-i="${idx}" data-k="maturity" step="1" min="1" max="${state.horizon}" value="${s.maturity}"></div>
         <div class="cell"><label>Cupom</label><input type="number" data-i="${idx}" data-k="coupon" step="0.005" value="${s.coupon}"></div>
-        <div class="cell"><label>Runoff</label><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></div>
+        <div class="cell"><label title="Taxa de evasão (runoff): fração que escoa por período sob estresse">Taxa de evasão</label><input type="number" data-i="${idx}" data-k="runoff" step="0.01" value="${s.runoff}"></div>
       </div>
     `;
     list.appendChild(item);
