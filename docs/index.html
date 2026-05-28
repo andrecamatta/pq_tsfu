@@ -647,13 +647,13 @@ footer .bottom {
       <div class="head">
         <h3>TSFu por maturidade</h3>
         <div class="toggle" id="tsfuToggle">
-          <button data-view="nl" class="active">AVL ilíquida</button>
-          <button data-view="l">AVL líquida</button>
+          <button data-view="nl" class="active">Ilíquida</button>
+          <button data-view="l">Líquida</button>
           <button data-view="both">Ambas</button>
         </div>
       </div>
       <div id="chartTSFu"></div>
-      <p class="note">Cada barra mostra a alocação por fonte na maturidade T. <strong>AVL ilíquida</strong> = (1−β)·FG vai para ativos ilíquidos vencendo em T (a TSFu propriamente dita). <strong>AVL líquida</strong> = β·FG fica em ativos líquidos como buffer de execução imediata na data da rolagem. Aumentar β desloca alocação de ilíquida para líquida, sem mudar o gap total a ser provisionado. O <strong>terminal em T<sub>b</sub></strong> sempre aparece como ilíquida pura (L·(1−x)<sup>N</sup>).</p>
+      <p class="note">Cada barra é a TSFu naquela maturidade, com altura igual à soma das contribuições AVL das fontes. Cada segmento colorido é a contribuição de uma fonte individual. <strong>Ilíquida</strong> mostra a TSFu de alocações em ativos ilíquidos vencendo em T (AVL = (1−β)·FG, a TSFu propriamente dita do livro). <strong>Líquida</strong> mostra a TSFu de alocações em ativos líquidos para o buffer de execução imediata (AVL = β·FG). <strong>Ambas</strong> empilha as duas componentes. Aumentar β desloca alocação de ilíquida para líquida sem mudar o gap total. O <strong>terminal em T<sub>b</sub></strong> sempre aparece como ilíquida pura (L·(1−x)<sup>N</sup>).</p>
     </div>
     <div class="chart">
       <div class="head"><h3>TSFCFu — cumulado forward</h3><span class="meta">orçamento agregado de comprometimento</span></div>
